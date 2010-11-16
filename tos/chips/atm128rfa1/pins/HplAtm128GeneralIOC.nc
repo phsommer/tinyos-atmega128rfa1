@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation for any purpose, without fee, and without written agreement is
+ * hereby granted, provided that the above copyright notice, the following
+ * two paragraphs and the author appear in all copies of this software.
+ * 
+ * IN NO EVENT SHALL CROSSBOW TECHNOLOGY OR ANY OF ITS LICENSORS BE LIABLE TO 
+ * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL 
+ * DAMAGES ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF CROSSBOW OR ITS LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
+ * DAMAGE. 
+ *
+ * CROSSBOW TECHNOLOGY AND ITS LICENSORS SPECIFICALLY DISCLAIM ALL WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS 
+ * ON AN "AS IS" BASIS, AND NEITHER CROSSBOW NOR ANY LICENSOR HAS ANY 
+ * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR 
+ * MODIFICATIONS.
+ */
+
+#include <atm128hardware.h>
+
+/**
+ * Provide GeneralIO interfaces for all of the Atmega128RFA1's pins.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author Philipp Sommer <sommer@tik.ee.ethz.ch> (Atmega128RFA1 port)
+ */
+
+configuration HplAtm128GeneralIOC
+{
+  // provides all the ports as raw ports
+  provides {
+
+    interface GeneralIO as PortB0;
+    interface GeneralIO as PortB1;
+    interface GeneralIO as PortB2;
+    interface GeneralIO as PortB3;
+    interface GeneralIO as PortB4;
+    interface GeneralIO as PortB5;
+    interface GeneralIO as PortB6;
+    interface GeneralIO as PortB7;
+
+    interface GeneralIO as PortD0;
+    interface GeneralIO as PortD1;
+    interface GeneralIO as PortD2;
+    interface GeneralIO as PortD3;
+    interface GeneralIO as PortD4;
+    interface GeneralIO as PortD5;
+    interface GeneralIO as PortD6;
+    interface GeneralIO as PortD7;
+
+    interface GeneralIO as PortE0;
+    interface GeneralIO as PortE1;
+    interface GeneralIO as PortE2;
+    interface GeneralIO as PortE3;
+    interface GeneralIO as PortE4;
+    interface GeneralIO as PortE5;
+    interface GeneralIO as PortE6;
+    interface GeneralIO as PortE7;
+
+    interface GeneralIO as PortF0;
+    interface GeneralIO as PortF1;
+    interface GeneralIO as PortF2;
+    interface GeneralIO as PortF3;
+    interface GeneralIO as PortF4;
+    interface GeneralIO as PortF5;
+    interface GeneralIO as PortF6;
+    interface GeneralIO as PortF7;
+
+    // PortG only exposes 6 bits
+    interface GeneralIO as PortG0;
+    interface GeneralIO as PortG1;
+    interface GeneralIO as PortG2;
+    interface GeneralIO as PortG3;
+    interface GeneralIO as PortG4;
+    interface GeneralIO as PortG5;
+  }
+}
+
+implementation
+{
+  components 
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTB, (uint8_t)&DDRB, (uint8_t)&PINB) as PortB,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTD, (uint8_t)&DDRD, (uint8_t)&PIND) as PortD,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTE, (uint8_t)&DDRE, (uint8_t)&PINE) as PortE,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTF, (uint8_t)&DDRF, (uint8_t)&PINF) as PortF,
+    new HplAtm128GeneralIOPortP((uint8_t)&PORTG, (uint8_t)&DDRG, (uint8_t)&PING) as PortG;
+
+  PortB0 = PortB.Pin0;
+  PortB1 = PortB.Pin1;
+  PortB2 = PortB.Pin2;
+  PortB3 = PortB.Pin3;
+  PortB4 = PortB.Pin4;
+  PortB5 = PortB.Pin5;
+  PortB6 = PortB.Pin6;
+  PortB7 = PortB.Pin7;
+
+  PortD0 = PortD.Pin0;
+  PortD1 = PortD.Pin1;
+  PortD2 = PortD.Pin2;
+  PortD3 = PortD.Pin3;
+  PortD4 = PortD.Pin4;
+  PortD5 = PortD.Pin5;
+  PortD6 = PortD.Pin6;
+  PortD7 = PortD.Pin7;
+
+  PortE0 = PortE.Pin0;
+  PortE1 = PortE.Pin1;
+  PortE2 = PortE.Pin2;
+  PortE3 = PortE.Pin3;
+  PortE4 = PortE.Pin4;
+  PortE5 = PortE.Pin5;
+  PortE6 = PortE.Pin6;
+  PortE7 = PortE.Pin7;
+
+  PortF0 = PortF.Pin0;
+  PortF1 = PortF.Pin1;
+  PortF2 = PortF.Pin2;
+  PortF3 = PortF.Pin3;
+  PortF4 = PortF.Pin4;
+  PortF5 = PortF.Pin5;
+  PortF6 = PortF.Pin6;
+  PortF7 = PortF.Pin7;
+
+  PortG0 = PortG.Pin0;
+  PortG1 = PortG.Pin1;
+  PortG2 = PortG.Pin2;
+  PortG3 = PortG.Pin3;
+  PortG4 = PortG.Pin4;
+  PortG5 = PortG.Pin5;
+}
