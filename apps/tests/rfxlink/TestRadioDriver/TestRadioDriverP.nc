@@ -32,36 +32,106 @@
  * Author: Miklos Maroti
  */
 
-#include "RadioConfig.h"
+#include "Tasklet.h"
+#include "RadioAssert.h"
+#include "message.h"
 
-configuration TimeStampingLayerC
+module TestRadioDriverP
 {
-	provides
-	{
-		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
-		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
-		interface RadioPacket;
-	}
-
 	uses
 	{
-		interface LocalTime<TRadio> as LocalTimeRadio;
-		interface RadioPacket as SubPacket;
+		interface Boot;
+		interface SplitControl;
+		interface Leds;
+
+		interface RadioState;
+		interface RadioSend;
+		interface RadioPacket;
 	}
 }
 
 implementation
 {
-	components new TimeStampingLayerP(), LocalTimeMilliC;
+	uint8_t counter;
+	message_t msg;
 
-	PacketTimeStampMilli = TimeStampingLayerP;
-	PacketTimeStampRadio = TimeStampingLayerP;
-	RadioPacket = TimeStampingLayerP.RadioPacket;
-	SubPacket = TimeStampingLayerP.SubPacket;
+	// we transmit 10 messages as fast as we can and turn off/on the radio
+	task void next()
+	{
+		error_t error;
 
-	LocalTimeRadio = TimeStampingLayerP;
-	TimeStampingLayerP.LocalTimeMilli -> LocalTimeMilliC;
+		if( counter == 0 )
+		{
+			error = call RadioState.turnOn();
+			RADIO_ASSERT( error == SUCCESS );
+		}
+		else if( counter > 10 )
+		{
+			error = call RadioState.turnOff();
+			RADIO_ASSERT( error == SUCCESS );
+		}
+		else
+		{
+			uint8_t *payload;
 
-	components new MetadataFlagC() as TimeStampFlagC;
-	TimeStampingLayerP.TimeStampFlag -> TimeStampFlagC;
+			call RadioPacket.clear(&msg);
+			call RadioPacket.setPayloadLength(&msg, 2);
+			payload = ((void*)&msg) + call RadioPacket.headerLength(&msg);
+
+			payload[0] = TOS_NODE_ID;
+			payload[1] = counter;
+
+			error = call RadioSend.send(&msg);
+			if( error != SUCCESS )
+				call Leds.led0Toggle();
+			else
+				call Leds.led1Toggle();
+		}
+
+		// retry last operation
+		if( error != SUCCESS )
+			post next();
+	}
+
+	tasklet_async event void RadioState.done()
+	{
+		if( counter == 0 )
+			counter = 1;
+		else
+			counter = 0;
+
+		post next();
+	}
+
+	tasklet_async event void RadioSend.sendDone(error_t error)
+	{
+		RADIO_ASSERT( error == SUCCESS );
+
+		counter += 1;
+		post next();
+	}
+
+	tasklet_async event void RadioSend.ready()
+	{
+	}
+
+	event void Boot.booted()
+	{
+		error_t error;
+		
+		error = call SplitControl.start();
+		RADIO_ASSERT( error == SUCCESS );
+	}
+
+	event void SplitControl.startDone(error_t error)
+	{
+		RADIO_ASSERT( error == SUCCESS );
+		
+		counter = 0;
+		post next();
+	}
+
+	event void SplitControl.stopDone(error_t error)
+	{
+	}
 }
