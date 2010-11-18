@@ -35,6 +35,7 @@
 #include "Tasklet.h"
 #include "RadioAssert.h"
 #include "message.h"
+#include "RadioConfig.h"
 
 module TestRadioDriverP
 {
@@ -45,75 +46,24 @@ module TestRadioDriverP
 		interface Leds;
 
 		interface RadioState;
-		interface RadioSend;
 		interface RadioPacket;
+		interface RadioAlarm;
+		interface RadioSend;
+	}
+
+	provides
+	{
+		interface RF230DriverConfig;
 	}
 }
 
 implementation
 {
-	uint8_t counter;
-	message_t msg;
+	tasklet_norace uint8_t failureCount;
+	tasklet_norace uint8_t successCount;
+	tasklet_norace uint8_t timerCount;
 
-	// we transmit 10 messages as fast as we can and turn off/on the radio
-	task void next()
-	{
-		error_t error;
-
-		if( counter == 0 )
-		{
-			error = call RadioState.turnOn();
-			RADIO_ASSERT( error == SUCCESS );
-		}
-		else if( counter > 10 )
-		{
-			error = call RadioState.turnOff();
-			RADIO_ASSERT( error == SUCCESS );
-		}
-		else
-		{
-			uint8_t *payload;
-
-			call RadioPacket.clear(&msg);
-			call RadioPacket.setPayloadLength(&msg, 2);
-			payload = ((void*)&msg) + call RadioPacket.headerLength(&msg);
-
-			payload[0] = TOS_NODE_ID;
-			payload[1] = counter;
-
-			error = call RadioSend.send(&msg);
-			if( error != SUCCESS )
-				call Leds.led0Toggle();
-			else
-				call Leds.led1Toggle();
-		}
-
-		// retry last operation
-		if( error != SUCCESS )
-			post next();
-	}
-
-	tasklet_async event void RadioState.done()
-	{
-		if( counter == 0 )
-			counter = 1;
-		else
-			counter = 0;
-
-		post next();
-	}
-
-	tasklet_async event void RadioSend.sendDone(error_t error)
-	{
-		RADIO_ASSERT( error == SUCCESS );
-
-		counter += 1;
-		post next();
-	}
-
-	tasklet_async event void RadioSend.ready()
-	{
-	}
+	message_t msgbuffer;
 
 	event void Boot.booted()
 	{
@@ -126,12 +76,93 @@ implementation
 	event void SplitControl.startDone(error_t error)
 	{
 		RADIO_ASSERT( error == SUCCESS );
-		
-		counter = 0;
-		post next();
+
+		error = call RadioState.turnOn();
+		ASSERT( error == SUCCESS );
 	}
 
 	event void SplitControl.stopDone(error_t error)
 	{
 	}
+
+	tasklet_async event void RadioState.done()
+	{
+		call RadioPacket.clear(&msgbuffer);
+		call RadioPacket.setPayloadLength(&msgbuffer, 2);
+
+		RADIO_ASSERT( call RadioAlarm.isFree() );
+
+		call RadioAlarm.wait(1);
+	}
+
+	tasklet_norace uint16_t next;
+
+	tasklet_async event void RadioAlarm.fired()
+	{
+		uint8_t *payload;
+		error_t error;
+
+		next += 2000;
+		atomic
+		{
+			call RadioAlarm.wait(next - call RadioAlarm.getNow());
+		}
+
+		payload = ((void*)&msgbuffer) + call RadioPacket.headerLength(&msgbuffer);
+
+		payload[0] = TOS_NODE_ID;
+		payload[1] = timerCount;
+
+		if( ++timerCount == 0 )
+			call Leds.led2Toggle();
+
+		error = call RadioSend.send(&msgbuffer);
+		if( error != SUCCESS )
+		{
+			if( ++failureCount == 0 )
+				call Leds.led0Toggle();
+		}
+		else
+		{
+			if( ++successCount == 0 )
+				call Leds.led1Toggle();
+		}
+	}
+
+	tasklet_async event void RadioSend.sendDone(error_t error)
+	{
+		RADIO_ASSERT( error == SUCCESS );
+	}
+
+	tasklet_async event void RadioSend.ready()
+	{
+	}
+
+/*----------------- RF230DriverConfig -----------------*/
+
+	async command uint8_t RF230DriverConfig.headerLength(message_t* msg)
+	{
+		return 0;
+	}
+
+	async command uint8_t RF230DriverConfig.maxPayloadLength()
+	{
+		return sizeof(message_header_t) + TOSH_DATA_LENGTH;
+	}
+
+	async command uint8_t RF230DriverConfig.metadataLength(message_t* msg)
+	{
+		return 0;
+	}
+
+	async command uint8_t RF230DriverConfig.headerPreloadLength()
+	{
+		return 7;
+	}
+
+	async command bool RF230DriverConfig.requiresRssiCca(message_t* msg)
+	{
+		return FALSE;
+	}
+
 }

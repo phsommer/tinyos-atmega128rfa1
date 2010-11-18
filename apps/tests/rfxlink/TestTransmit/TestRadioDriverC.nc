@@ -38,22 +38,18 @@ configuration TestRadioDriverC
 
 implementation
 {
-	components TestRadioDriverP, MainC, SerialActiveMessageC, AssertC, LedsC;
+	components TestRadioDriverP, MainC, SerialActiveMessageC, AssertC, LedsC, RadioAlarmC;
 	
 	TestRadioDriverP.Boot -> MainC;
 	TestRadioDriverP.SplitControl -> SerialActiveMessageC;
 	TestRadioDriverP.RadioState -> RadioDriverLayerC;
 	TestRadioDriverP.RadioSend -> RadioDriverLayerC;
-	TestRadioDriverP.RadioPacket -> Ieee154PacketLayerC;
+	TestRadioDriverP.RadioPacket -> TimeStampingLayerC;
+	TestRadioDriverP.RadioAlarm -> RadioAlarmC.RadioAlarm[unique("RadioAlarm")];
 	TestRadioDriverP.Leds -> LedsC;
 
 	// just to avoid a timer compilation bug
 	components new TimerMilliC();
-
-// -------- ActiveMessage
-
-	components Ieee154PacketLayerC;
-	Ieee154PacketLayerC.SubPacket -> TimeStampingLayerC;
 
 // -------- TimeStamping
 
@@ -70,13 +66,10 @@ implementation
 
 #if defined(PLATFORM_IRIS) || defined(PLATFORM_MULLE)
 	components RF230DriverLayerC as RadioDriverLayerC;
-	components RF230RadioP as RadioP;
 #elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSA) || defined(PLATFORM_TELOSB)
 	components CC2420XDriverLayerC as RadioDriverLayerC;
-	components CC2420XRadioP as RadioP;
 #endif
 
+	RadioDriverLayerC.Config -> TestRadioDriverP;
 	RadioDriverLayerC.PacketTimeStamp -> TimeStampingLayerC;
-	RadioDriverLayerC.Config -> RadioP;
-	RadioP.Ieee154PacketLayer -> Ieee154PacketLayerC;
 }

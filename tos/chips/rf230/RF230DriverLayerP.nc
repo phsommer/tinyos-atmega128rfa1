@@ -360,6 +360,18 @@ implementation
 
 			writeRegister(RF230_TRX_STATE, RF230_RX_ON);
 			state = STATE_TRX_OFF_2_RX_ON;
+
+#ifdef RADIO_DEBUG_PARTNUM
+			if( call DiagMsg.record() )
+			{
+				call DiagMsg.str("partnum");
+				call DiagMsg.hex8(readRegister(RF230_PART_NUM));
+				call DiagMsg.hex8(readRegister(RF230_VERSION_NUM));
+				call DiagMsg.hex8(readRegister(RF230_MAN_ID_0));
+				call DiagMsg.hex8(readRegister(RF230_MAN_ID_1));
+				call DiagMsg.send();
+			}
+#endif
 		}
 		else if( (cmd == CMD_TURNOFF || cmd == CMD_STANDBY) 
 			&& state == STATE_RX_ON && isSpiAcquired() )
@@ -840,6 +852,11 @@ implementation
 
 /*----------------- TASKLET -----------------*/
 
+	task void releaseSpi()
+	{
+		call SpiResource.release();
+	}
+
 	tasklet_async event void Tasklet.run()
 	{
 		if( radioIrq )
@@ -865,7 +882,7 @@ implementation
 			signal RadioSend.ready();
 
 		if( cmd == CMD_NONE )
-			call SpiResource.release();
+			post releaseSpi();
 	}
 
 /*----------------- RadioPacket -----------------*/
