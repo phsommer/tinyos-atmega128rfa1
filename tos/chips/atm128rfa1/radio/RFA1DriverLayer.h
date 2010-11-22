@@ -88,18 +88,6 @@ enum rfa1_phy_register_enums
 	RFA1_CCA_ED_THRES_SHIFT = 0,
 };
 
-enum rfa1_irq_register_enums
-{
-	RFA1_IRQ_AWAKE = 1 << 7,
-	RFA1_IRQ_TX_END = 1 << 6,
-	RFA1_IRQ_AMI = 1 << 5,
-	RFA1_IRQ_CCA_ED_DONE = 1 << 4,
-	RFA1_IRQ_RX_END = 1 << 3,
-	RFA1_IRQ_RX_START = 1 << 2,
-	RFA1_IRQ_PLL_UNLOCK = 1 << 1,
-	RFA1_IRQ_PLL_LOCK = 1 << 0,
-};
-
 enum rfa1_control_register_enums
 {
 	RFA1_AVREG_EXT = 1 << 7,
