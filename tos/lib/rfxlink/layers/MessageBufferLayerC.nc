@@ -51,7 +51,7 @@ configuration MessageBufferLayerC
 
 implementation
 {
-	components new MessageBufferLayerP(), MainC, TaskletC;
+	components new MessageBufferLayerP(), MainC, new TaskletC();
 
 	MainC.SoftwareInit -> MessageBufferLayerP;
 

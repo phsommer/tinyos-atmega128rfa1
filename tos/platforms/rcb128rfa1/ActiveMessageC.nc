@@ -55,7 +55,7 @@ configuration ActiveMessageC
 #endif
 		interface RadioChannel;
 
-		interface PacketTimeStamp<TMicro, uint32_t> as PacketTimeStampMicro;
+		interface PacketTimeStamp<T32khz, uint32_t> as PacketTimeStamp32khz;
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 	}
 }
@@ -82,5 +82,5 @@ implementation
 	RadioChannel = MessageC;
 
 	PacketTimeStampMilli = MessageC;
-	PacketTimeStampMicro = MessageC;
+	PacketTimeStamp32khz = MessageC;
 }

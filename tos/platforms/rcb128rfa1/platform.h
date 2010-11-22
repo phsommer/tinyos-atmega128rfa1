@@ -1,9 +1,27 @@
 // Note: Interrupt handlers have been renamed in "iom128rfa1.h"
 // These macros define the vectors for the interrupt handlers in the atm128/atm1281 code. 
 
+
+/* Timer/Counter0 Compare Match A */
+#define SIG_OUTPUT_COMPARE0A _VECTOR(21)
+/* Timer/Counter0 Compare Match B */
+#define SIG_OUTPUT_COMPARE0B _VECTOR(22)
+/* Timer/Counter0 Overflow */
+#define SIG_OVERFLOW0 _VECTOR(23)
+
+/* Timer/Counter1 Capture Event */
+#define SIG_INPUT_CAPTURE1 _VECTOR(16)
+/* Timer/Counter1 Compare Match A */
+#define SIG_OUTPUT_COMPARE1A _VECTOR(17)
+/* Timer/Counter1 Compare Match B */
+#define SIG_OUTPUT_COMPARE1B _VECTOR(18)
+/* Timer/Counter1 Compare Match C */
+#define SIG_OUTPUT_COMPARE1C _VECTOR(19)
+/* Timer/Counter1 Overflow */
+#define SIG_OVERFLOW1 _VECTOR(20)
+
 /* Timer/Counter2 Compare Match A */
 #define SIG_OUTPUT_COMPARE2A _VECTOR(13)
-
 /* Timer/Counter2 Overflow */
 #define SIG_OVERFLOW2 _VECTOR(15)
 

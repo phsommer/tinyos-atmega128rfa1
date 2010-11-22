@@ -34,7 +34,6 @@
 *  Preliminary implementation of the RFA1 radio driver
 *
 *  TOOD: Power reduction settings in PRR1 (PRTRX24 bit)
-*  TODO: timestamping/clocks
 *  TODO: power management (McuPowerOverride interface)
 */
 
@@ -101,7 +100,7 @@ implementation
 	tasklet_norace uint8_t state;
 	enum
 	{
-		STATE_P_ON = 0,
+		STATE_PLL_ON = 0,
 		STATE_SLEEP = 1,
 		STATE_SLEEP_2_TRX_OFF = 2,
 		STATE_TRX_OFF = 3,
@@ -120,22 +119,20 @@ implementation
 		CMD_TURNON = 3,			// goto RX_ON state
 		CMD_TRANSMIT = 4,		// currently transmitting a message
 		CMD_RECEIVE = 5,		// currently receiving a message
-		CMD_CCA = 6,			// performing clear chanel assesment
+		CMD_CCA = 6,			// performing clear channel assessment
 		CMD_CHANNEL = 7,		// changing the channel
 		CMD_SIGNAL_DONE = 8,	// signal the end of the state transition
 		CMD_DOWNLOAD = 9,		// download the received message
 	};
 	
 
-	uint8_t radioIrq;
+	norace uint8_t radioIrq;
 
 	tasklet_norace uint8_t txPower;
 	tasklet_norace uint8_t channel;
 
 	tasklet_norace message_t* rxMsg;
 	message_t rxMsgBuffer;
-
-	uint32_t sfdTime;
 
 	tasklet_norace uint8_t rssiClear;
 	tasklet_norace uint8_t rssiBusy;
@@ -145,9 +142,9 @@ implementation
 
 	enum
 	{
-		// TX_SFD_DELAY = 1 symbol PLL + 40 symbols SHR + 8 symbols PHR
-		TX_SFD_DELAY = (uint16_t)((1+40+8)*25 * RADIO_ALARM_MICROSEC),
-		RX_SFD_DELAY = (uint16_t)(29 * RADIO_ALARM_MICROSEC),
+		// TODO: needs to be calibrated
+		TX_SFD_DELAY = 0,
+		RX_SFD_DELAY = 0,
 	};
 
 
@@ -180,11 +177,8 @@ implementation
 		
 		PHY_CC_CCA = (RFA1_CCA_MODE_VALUE<<CCA_MODE0) | channel;
 
-		// configure MAC symbol counter
-		SET_BIT(SCCR0, SCEN);		// enable symbol counter
-		SET_BIT(SCCR0, SCTSE);		// enable SFD timestamping
-		SET_BIT(SCCR0, SCCKSEL);	// sourced by the 32kHz RTC
-
+		// enable MAC layer timestamping with 32khz RTC
+		SCCR0 = 1<<SCEN | 1<<SCTSE | 1<<SCCKSEL;
 
 		// enter sleep mode
 		SET_BIT(TRXPR, SLPTR);
@@ -222,12 +216,11 @@ implementation
 		ASSERT( cmd == CMD_CHANNEL );
 		ASSERT( state == STATE_SLEEP || state == STATE_TRX_OFF || state == STATE_RX_ON );
 
-		PHY_CC_CCA = (RFA1_CCA_MODE_VALUE<<CCA_MODE0) | channel;
-
-		if( state == STATE_RX_ON )
+		if (state==STATE_RX_ON || state==STATE_PLL_ON) {
+			PHY_CC_CCA = (RFA1_CCA_MODE_VALUE<<CCA_MODE0) | channel;	
 			state = STATE_TRX_OFF_2_RX_ON;
-		else
-			cmd = CMD_SIGNAL_DONE;
+		}
+		
 	}
 
 /*----------------- TURN ON/OFF -----------------*/
@@ -325,7 +318,6 @@ implementation
 		uint8_t* data;
 		uint8_t header;
 		void* timesync;
-
 		
 
 		if( cmd != CMD_NONE || state != STATE_RX_ON || radioIrq )
@@ -379,18 +371,19 @@ implementation
 				
 		// upload header
 		memcpy((void*)(&TRXFBST+1), data, header);
-
+		
 		atomic
 		{
+			uint8_t lsb;
+			
 			TRX_STATE = CMD_TX_START;
 			// get timestamp
-			// reading LSB captures current symbol counter value
-			time = SCTSRLL;
-
+			// reading the LSB captures current symbol counter value
+			lsb = SCCNTLL;
 			time = SCCNTHH;
 			time = time<<8 | SCCNTHL;
 			time = time<<8 | SCCNTLH;
-			time = time<<8 | SCCNTLL;
+			time = time<<8 | lsb;
 			time = time + TX_SFD_DELAY;
 		}
 
@@ -420,9 +413,9 @@ implementation
 		cmd = CMD_TRANSMIT;
 		
 		TRX_STATE = CMD_RX_ON;
-
+		
 		if( timesync != 0 )
-			*(timesync_absolute_t*)timesync = (*(timesync_relative_t*)timesync) + time;
+			*(timesync_absolute_t*)timesync = time;
 
 		call PacketTimeStamp.set(msg, time);
 
@@ -544,13 +537,10 @@ implementation
 	void serviceRadio()
 	{
 
-			uint16_t time;
-			uint32_t time32;
 			uint8_t irq;
 			uint8_t temp;
 			
 			atomic {
-			  time = sfdTime;
 			  irq = radioIrq;
 			  // TODO: this will reset all other pending interrupts
 			  radioIrq = 0;
@@ -622,12 +612,18 @@ implementation
 					 */
 					if( irq == RFA1_IRQ_RX_START ) // just to be cautious
 					{
-						time32 = call LocalTime.get();
-						time32 += (int16_t)(time - RX_SFD_DELAY) - (int16_t)(time32);
-						call PacketTimeStamp.set(rxMsg, time32);
+						
+						uint32_t time =  SCTSRHH;
+						time = time<<8 | SCTSRHL;
+						time = time<<8 | SCTSRLH;
+						time = time<<8 | SCTSRLL;
+						
+						//printf("Time: %lu\n", time);
+						call PacketTimeStamp.set(rxMsg, time - RX_SFD_DELAY);
 					}
-					else
+					else {
 						call PacketTimeStamp.clear(rxMsg);
+					}
 
 					cmd = CMD_RECEIVE;
 				}
@@ -686,6 +682,7 @@ implementation
 
 /*----------------- TASKLET -----------------*/
 
+
 	tasklet_async event void Tasklet.run()
 	{
 		//printf("Tasklet run: cmd = %u, state = %u\n", cmd, state);
@@ -701,6 +698,11 @@ implementation
 				changeState();
 			else if( cmd == CMD_CHANNEL )
 				changeChannel();
+			else if( cmd == CMD_CCA ) {
+				cmd = CMD_NONE;
+				ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
+				signal RadioCCA.done((TRX_STATUS & RFA1_CCA_STATUS) ? SUCCESS : EBUSY);
+			}
 			
 			if( cmd == CMD_SIGNAL_DONE )
 			{
@@ -711,7 +713,6 @@ implementation
 
 		if( cmd == CMD_NONE && state == STATE_RX_ON && ! radioIrq )
 			signal RadioSend.ready();
-
 	}
 
 /*----------------- RadioPacket -----------------*/
@@ -853,13 +854,14 @@ implementation
 	async command uint32_t LocalTime.get() {
 		
 		uint32_t time;		
-		// reading the LSB captures the current symbol counter
-		atomic time = SCTSRLL;
-		
-		time = SCCNTHH;
-		time = time<<8 | SCCNTHL;
-		time = time<<8 | SCCNTLH;
-		time = time<<8 | SCCNTLL;
+		atomic {
+			// reading the LSB captures the current symbol counter
+			uint8_t lsb = SCCNTLL;
+		    time = SCCNTHH;
+		    time = time<<8 | SCCNTHL;
+		    time = time<<8 | SCCNTLH;
+		    time = time<<8 | lsb;
+		}
 		return time;
 	}
 	
@@ -870,75 +872,49 @@ implementation
 		
 		ASSERT( ! radioIrq );
 
-		// reading the LSB captures the current timestamp
-		sfdTime = SCTSRLL;
-
-		sfdTime = SCTSRHH;
-		sfdTime = sfdTime<<8 | SCTSRHL;
-		sfdTime = sfdTime<<8 | SCTSRLH;
-		sfdTime = sfdTime<<8 | SCTSRLL;
-
-		// TODO: atomic necessary here?
-		atomic
-		{
-			radioIrq |= RFA1_IRQ_RX_START;
-		}
+		radioIrq |= RFA1_IRQ_RX_START;
 		call Tasklet.schedule();
 	}
 
 	AVR_ATOMIC_HANDLER(TRX24_RX_END_vect) {
 
 		ASSERT( ! radioIrq );
-		atomic
-		{
-			radioIrq |= RFA1_IRQ_TRX_END;
-		}
+		radioIrq |= RFA1_IRQ_TRX_END;
 		call Tasklet.schedule();
 	}
 
 	AVR_ATOMIC_HANDLER(TRX24_TX_END_vect) {
 		ASSERT( ! radioIrq );
-		atomic
-		{
-			radioIrq |= RFA1_IRQ_TRX_END;
-		}
+		radioIrq |= RFA1_IRQ_TRX_END;
 		call Tasklet.schedule();
 	}
 
 	AVR_ATOMIC_HANDLER(TRX24_PLL_LOCK_vect) {
-		// TRX24_PLL_LOCK interrupt is triggered in two cases:
-		// - state change to PLL_ON/RX_ON
-		// - channel change in state PLL_ON/RX_ON
+
 		if (state == STATE_TRX_OFF_2_RX_ON) {
-			
+			// state change to PLL_ON/RX_ON
 			state = STATE_RX_ON;
 			cmd = CMD_SIGNAL_DONE;
-			call Tasklet.schedule();	
-		} else {
-			// TODO: channel change
+		    call Tasklet.schedule();
 		}
-		
 		
 	}
 
 	AVR_ATOMIC_HANDLER(TRX24_AWAKE_vect) {
 		// TRX_OFF state reached
 		if (state==STATE_SLEEP_2_TRX_OFF) {
-		  state = STATE_TRX_OFF;
-		  changeState();
+		  	state = STATE_TRX_OFF;
+			call Tasklet.schedule();
 		}
 	}
 
 
 	AVR_ATOMIC_HANDLER(TRX24_CCA_ED_DONE_vect) {
 		// CCA completed 
-		// TODO: check for Errate 38.5.5
+		// TODO: check for Errata 38.5.5
 		if( cmd == CMD_CCA && (TRX_STATUS & RFA1_CCA_DONE))
 		{
-			cmd = CMD_NONE;
-			
-			ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
-			signal RadioCCA.done((TRX_STATUS & RFA1_CCA_STATUS) ? SUCCESS : EBUSY);
+			call Tasklet.schedule();
 		}		
 
 

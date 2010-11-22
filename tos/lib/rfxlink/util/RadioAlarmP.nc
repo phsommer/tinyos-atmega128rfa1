@@ -44,7 +44,7 @@ module RadioAlarmP
 
 	uses
 	{
-		interface Alarm<TRadio, uint16_t>;
+		interface Alarm<TRadioAlarm, uint16_t>;
 		interface Tasklet;
 	}
 }

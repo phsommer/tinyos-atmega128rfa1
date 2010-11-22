@@ -63,7 +63,7 @@ interface RadioState
 	tasklet_async command error_t setChannel(uint8_t channel);
 
 	/**
-	 * This event is signaled exactly once for each sucessfully posted state 
+	 * This event is signaled exactly once for each successfully posted state 
 	 * transition and setChannel command when it is completed.
 	 */
 	tasklet_async event void done();

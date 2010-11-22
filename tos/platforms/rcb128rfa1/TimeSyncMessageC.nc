@@ -52,12 +52,14 @@ configuration TimeSyncMessageC
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli[am_id_t id];
 		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
+		
+		interface LocalTime<TRadio>;
 	}
 }
 
 implementation
 {
-	components RF230TimeSyncMessageC as MessageC;
+	components RFA1TimeSyncMessageC as MessageC;
   
 	SplitControl	= MessageC;
   	Receive		= MessageC.Receive;
@@ -66,10 +68,12 @@ implementation
 	AMPacket	= MessageC;
 
 	PacketTimeStampRadio	= MessageC;
-	TimeSyncAMSendRadio	= MessageC;
-	TimeSyncPacketRadio	= MessageC;
+	TimeSyncAMSendRadio		= MessageC;
+	TimeSyncPacketRadio		= MessageC;
 
 	PacketTimeStampMilli	= MessageC;
 	TimeSyncAMSendMilli	= MessageC;
 	TimeSyncPacketMilli	= MessageC;
+	
+	LocalTime = MessageC;
 }

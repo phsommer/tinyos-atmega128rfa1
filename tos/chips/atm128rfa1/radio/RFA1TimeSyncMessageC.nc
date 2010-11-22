@@ -41,6 +41,8 @@ configuration RFA1TimeSyncMessageC
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 		interface TimeSyncAMSend<TMilli, uint32_t> as TimeSyncAMSendMilli[am_id_t id];
 		interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
+		
+		interface LocalTime<TRadio>;
 	}
 }
 
@@ -67,4 +69,6 @@ implementation
 
 	TimeSyncMessageLayerC.LocalTimeRadio -> RFA1DriverLayerC;
 	TimeSyncMessageLayerC.PacketTimeSyncOffset -> RFA1DriverLayerC.PacketTimeSyncOffset;
+	
+	LocalTime = RFA1DriverLayerC;
 }

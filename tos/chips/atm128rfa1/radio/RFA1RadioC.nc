@@ -64,7 +64,7 @@ configuration RFA1RadioC
 		interface PacketField<uint8_t> as PacketRSSI;
 
 		interface LocalTime<TRadio> as LocalTimeRadio;
-		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
+		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStamp32khz;
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
 	}
 }
@@ -235,7 +235,7 @@ implementation
 	components TimeStampingLayerC;
 	TimeStampingLayerC.LocalTimeRadio -> RFA1DriverLayerC;
 	TimeStampingLayerC.SubPacket -> MetadataFlagsLayerC;
-	PacketTimeStampRadio = TimeStampingLayerC;
+	PacketTimeStamp32khz = TimeStampingLayerC;
 	PacketTimeStampMilli = TimeStampingLayerC;
 
 // -------- MetadataFlags

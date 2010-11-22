@@ -41,13 +41,13 @@ configuration RadioAlarmC
 
 	uses
 	{
-		interface Alarm<TRadio, uint16_t> @exactlyonce();
+		interface Alarm<TRadioAlarm, uint16_t> @exactlyonce();
 	}
 }
 
 implementation
 {
-	components RadioAlarmP, TaskletC;
+	components RadioAlarmP, new TaskletC();
 
 	RadioAlarm = RadioAlarmP;
 	Alarm = RadioAlarmP;

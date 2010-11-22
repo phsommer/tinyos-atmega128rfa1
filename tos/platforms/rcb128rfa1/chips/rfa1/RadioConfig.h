@@ -71,7 +71,9 @@ inline uint16_t RFA1_CRCBYTE_COMMAND(uint16_t crc, uint8_t data)
 /**
  * This is the timer type of the radio alarm interface
  */
-typedef TThree TRadio;
+typedef T32khz TRadio;
+
+typedef TThree TRadioAlarm;
 
 /**
  * The number of radio alarm ticks per one microsecond
