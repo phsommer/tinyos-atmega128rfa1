@@ -546,6 +546,13 @@ implementation
 			  radioIrq = 0;
 			}
 			
+			if (irq & RFA1_IRQ_AWAKE) {
+				if (state==STATE_SLEEP_2_TRX_OFF) {
+				  	state = STATE_TRX_OFF;
+				}
+			}
+
+
 #ifdef RFA1_RSSI_ENERGY
 			if( irq & RFA1_IRQ_TRX_END )
 			{
@@ -575,6 +582,20 @@ implementation
 				else
 					ASSERT(FALSE);
 			}
+
+			if (irq & RFA1_IRQ_CCA_ED_DONE) {
+				// CCA completed 
+				// TODO: check for Errata 38.5.5
+				if( cmd == CMD_CCA && (TRX_STATUS & RFA1_CCA_DONE))
+				{
+					ASSERT( (TRX_STATUS & RFA1_TRX_STATUS_MASK) == RX_ON );
+					cmd = CMD_NONE;
+					signal RadioCCA.done((TRX_STATUS & RFA1_CCA_STATUS) ? SUCCESS : EBUSY);
+				}
+
+			}
+			
+		
 
 			if( irq & RFA1_IRQ_RX_START )
 			{
@@ -631,7 +652,7 @@ implementation
 					ASSERT( cmd == CMD_TURNOFF );
 			}
 
-			if( irq & RFA1_IRQ_TRX_END )
+			if( irq & RFA1_IRQ_TX_END )
 			{
 				
 				if( cmd == CMD_TRANSMIT )
@@ -857,10 +878,10 @@ implementation
 		atomic {
 			// reading the LSB captures the current symbol counter
 			uint8_t lsb = SCCNTLL;
-		    time = SCCNTHH;
-		    time = time<<8 | SCCNTHL;
-		    time = time<<8 | SCCNTLH;
-		    time = time<<8 | lsb;
+		 	time = SCCNTHH;
+			time = time<<8 | SCCNTHL;
+			time = time<<8 | SCCNTLH;
+			time = time<<8 | lsb;
 		}
 		return time;
 	}
@@ -871,53 +892,51 @@ implementation
 	AVR_ATOMIC_HANDLER(TRX24_RX_START_vect) {
 		
 		ASSERT( ! radioIrq );
-
-		radioIrq |= RFA1_IRQ_RX_START;
+		atomic {
+			radioIrq |= RFA1_IRQ_RX_START;
+		}
 		call Tasklet.schedule();
 	}
 
 	AVR_ATOMIC_HANDLER(TRX24_RX_END_vect) {
 
 		ASSERT( ! radioIrq );
-		radioIrq |= RFA1_IRQ_TRX_END;
+		atomic {
+			radioIrq |= RFA1_IRQ_TX_END;
+		}
 		call Tasklet.schedule();
 	}
 
 	AVR_ATOMIC_HANDLER(TRX24_TX_END_vect) {
 		ASSERT( ! radioIrq );
-		radioIrq |= RFA1_IRQ_TRX_END;
+		atomic {
+			radioIrq |= RFA1_IRQ_TX_END;
+		}
 		call Tasklet.schedule();
 	}
 
 	AVR_ATOMIC_HANDLER(TRX24_PLL_LOCK_vect) {
-
-		if (state == STATE_TRX_OFF_2_RX_ON) {
-			// state change to PLL_ON/RX_ON
-			state = STATE_RX_ON;
-			cmd = CMD_SIGNAL_DONE;
-		    call Tasklet.schedule();
+		ASSERT( ! radioIrq );
+		atomic {
+			radioIrq |= RFA1_IRQ_PLL_LOCK;
 		}
-		
+		call Tasklet.schedule();
 	}
 
 	AVR_ATOMIC_HANDLER(TRX24_AWAKE_vect) {
-		// TRX_OFF state reached
-		if (state==STATE_SLEEP_2_TRX_OFF) {
-		  	state = STATE_TRX_OFF;
-			call Tasklet.schedule();
+		ASSERT( ! radioIrq );
+		atomic {
+			radioIrq |= RFA1_IRQ_AWAKE;
 		}
+		call Tasklet.schedule();
 	}
 
-
 	AVR_ATOMIC_HANDLER(TRX24_CCA_ED_DONE_vect) {
-		// CCA completed 
-		// TODO: check for Errata 38.5.5
-		if( cmd == CMD_CCA && (TRX_STATUS & RFA1_CCA_DONE))
-		{
-			call Tasklet.schedule();
-		}		
-
-
+		ASSERT( ! radioIrq );
+		atomic {
+			radioIrq |= RFA1_IRQ_CCA_ED_DONE;
+		}
+		call Tasklet.schedule();
 	}
 	
 	
