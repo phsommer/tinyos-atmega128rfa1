@@ -129,14 +129,14 @@ implementation
   
   enum
   {
-    IRQ_AWAKE = 1 << 7,
-    IRQ_TX_END = 1 << 6,
-    IRQ_AMI = 1 << 5,
-    IRQ_CCA_ED_DONE = 1 << 4,
-    IRQ_RX_END = 1 << 3,
-    IRQ_RX_START = 1 << 2,
-    IRQ_PLL_UNLOCK = 1 << 1,
     IRQ_PLL_LOCK = 1 << 0,
+    IRQ_PLL_UNLOCK = 1 << 1,
+    IRQ_RX_START = 1 << 2,
+    IRQ_RX_END = 1 << 3,
+    IRQ_CCA_ED_DONE = 1 << 4,
+    IRQ_AMI = 1 << 5,
+    IRQ_TX_END = 1 << 6,
+    IRQ_AWAKE = 1 << 7,
   };
 
   tasklet_norace uint8_t radioIrq;
@@ -178,17 +178,13 @@ implementation
   command error_t SoftwareInit.init()
   {
 
-    // reset transceiver section
-    SET_BIT(TRXPR, TRXRST);
-
-    IRQ_MASK = (1<<PLL_LOCK_EN) | (1<<TX_END_EN) | (1<<RX_START_EN) | (1<<RX_END_EN) | (1<<AWAKE_EN);
-    CCA_THRES =  RFA1_CCA_THRES_VALUE;
-    PHY_TX_PWR = (RFA1_DEF_RFPOWER & RFA1_TX_PWR_MASK) | (PA_BUF_LT_6US<<PA_BUF_LT0) | (PA_LT_2US<<PA_LT0);
-
     txPower = RFA1_DEF_RFPOWER & RFA1_TX_PWR_MASK;
     channel = RFA1_DEF_CHANNEL & RFA1_CHANNEL_MASK;
-    
+
+    CCA_THRES =  RFA1_CCA_THRES_VALUE;
     PHY_CC_CCA = (RFA1_CCA_MODE_VALUE<<CCA_MODE0) | channel;
+
+    PHY_TX_PWR = (RFA1_DEF_RFPOWER & RFA1_TX_PWR_MASK) | (PA_BUF_LT_6US<<PA_BUF_LT0) | (PA_LT_2US<<PA_LT0);
 
     // enable MAC layer timestamping with 32khz RTC
     SCCR0 = 1<<SCEN | 1<<SCTSE | 1<<SCCKSEL;
@@ -241,6 +237,7 @@ implementation
     if( (cmd == CMD_STANDBY || cmd == CMD_TURNON)
       && state == STATE_SLEEP)
     {
+      IRQ_MASK = (1<<PLL_LOCK_EN) | (1<<TX_END_EN) | (1<<RX_START_EN) | (1<<RX_END_EN) | (1<<AWAKE_EN);
       CLR_BIT(TRXPR, SLPTR);
       state = STATE_SLEEP_2_TRX_OFF;
     }
@@ -264,6 +261,9 @@ implementation
 
     if( cmd == CMD_TURNOFF && state == STATE_TRX_OFF )
     {
+      // disable interrupts
+	  IRQ_MASK = 0;
+	  
       SET_BIT(TRXPR,SLPTR);
       state = STATE_SLEEP;
       cmd = CMD_SIGNAL_DONE;
@@ -538,15 +538,13 @@ implementation
   void serviceRadio()
   {
 
-      uint8_t irq;
-      
-      irq = radioIrq;
+      uint8_t irq = radioIrq;
       radioIrq = 0;
       
       if (irq & IRQ_AWAKE) {
         if (state==STATE_SLEEP_2_TRX_OFF) {
             state = STATE_TRX_OFF;
-        }
+       }
       }
 
 
