@@ -47,7 +47,7 @@ configuration RadioAlarmC
 
 implementation
 {
-	components RadioAlarmP, new TaskletC();
+	components RadioAlarmP, TaskletC;
 
 	RadioAlarm = RadioAlarmP;
 	Alarm = RadioAlarmP;

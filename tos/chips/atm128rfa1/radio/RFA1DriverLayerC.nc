@@ -51,7 +51,7 @@ configuration RFA1DriverLayerC
 
 implementation
 {
-	components RFA1DriverLayerP, BusyWaitMicroC, new TaskletC(), MainC;
+	components RFA1DriverLayerP, BusyWaitMicroC, TaskletC, MainC;
 
 	RadioState = RFA1DriverLayerP;
 	RadioSend = RFA1DriverLayerP;
