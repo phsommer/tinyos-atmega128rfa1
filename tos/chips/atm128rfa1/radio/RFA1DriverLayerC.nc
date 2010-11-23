@@ -38,8 +38,9 @@ configuration RFA1DriverLayerC
 		interface PacketField<uint8_t> as PacketRSSI;
 		interface PacketField<uint8_t> as PacketTimeSyncOffset;
 		interface PacketField<uint8_t> as PacketLinkQuality;
-
+		
 		interface LocalTime<TRadio> as LocalTimeRadio;
+
 	}
 
 	uses
@@ -59,8 +60,6 @@ implementation
 	RadioCCA = RFA1DriverLayerP;
 	RadioPacket = RFA1DriverLayerP;
 
-	LocalTimeRadio = RFA1DriverLayerP;
-
 	Config = RFA1DriverLayerP;
 
 	PacketTransmitPower = RFA1DriverLayerP.PacketTransmitPower;
@@ -78,6 +77,9 @@ implementation
 	PacketLinkQuality = RFA1DriverLayerP.PacketLinkQuality;
 	PacketTimeStamp = RFA1DriverLayerP.PacketTimeStamp;
 
+	components LocalTime62khzC;
+	RFA1DriverLayerP.LocalTime -> LocalTime62khzC;
+	LocalTimeRadio = LocalTime62khzC;
 
 	RFA1DriverLayerP.Tasklet -> TaskletC;
 	RFA1DriverLayerP.BusyWait -> BusyWaitMicroC;

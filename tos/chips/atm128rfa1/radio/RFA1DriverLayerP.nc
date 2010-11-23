@@ -63,7 +63,6 @@ module RFA1DriverLayerP
     interface PacketField<uint8_t> as PacketTimeSyncOffset;
     interface PacketField<uint8_t> as PacketLinkQuality;
 
-    interface LocalTime<TRadio>;
   }
 
   uses
@@ -77,7 +76,8 @@ module RFA1DriverLayerP
     interface PacketFlag as TimeSyncFlag;
 
     interface PacketTimeStamp<TRadio, uint32_t>;
-
+    interface LocalTime<TRadio>;
+    
     interface Tasklet;
     #ifdef RADIO_DEBUG
     interface DiagMsg;
@@ -865,21 +865,6 @@ implementation
     getMeta(msg)->lqi = value;
   }
 
-/*----------------- LocalTime -----------------*/
-
-  async command uint32_t LocalTime.get() {
-    
-    uint32_t time;    
-    atomic {
-      // reading the LSB captures the current symbol counter
-      uint8_t lsb = SCCNTLL;
-       time = SCCNTHH;
-      time = time<<8 | SCCNTHL;
-      time = time<<8 | SCCNTLH;
-      time = time<<8 | lsb;
-    }
-    return time;
-  }
   
   /*----------------- INTERRUPTS -----------------*/
 

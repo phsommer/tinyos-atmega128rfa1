@@ -26,6 +26,7 @@
 
 #include <MicaTimer.h>
 #include <RFA1DriverLayer.h>
+#include "HplAtmRfa1Timer.h"
 #include <util/crc16.h>
 
 enum
@@ -71,7 +72,7 @@ inline uint16_t RFA1_CRCBYTE_COMMAND(uint16_t crc, uint8_t data)
 /**
  * This is the timer type of the radio alarm interface
  */
-typedef T32khz TRadio;
+typedef T62khz TRadio;
 
 typedef TThree TRadioAlarm;
 
