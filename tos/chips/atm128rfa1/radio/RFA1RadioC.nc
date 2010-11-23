@@ -255,7 +255,7 @@ implementation
 
 // -------- RadioAlarm
 
-	components RadioAlarmC, new AlarmThree16C() as AlarmC;
+	components RadioAlarmC, new Alarm62khz32C() as AlarmC;
 	RadioAlarmC.Alarm -> AlarmC;
 	
 }

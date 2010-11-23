@@ -74,17 +74,15 @@ inline uint16_t RFA1_CRCBYTE_COMMAND(uint16_t crc, uint8_t data)
  */
 typedef T62khz TRadio;
 
-typedef TThree TRadioAlarm;
-
 /**
  * The number of radio alarm ticks per one microsecond
  */
-#define RADIO_ALARM_MICROSEC	1L
+#define RADIO_ALARM_MICROSEC	62500UL / 1000000UL
 
 /**
  * The base two logarithm of the number of radio alarm ticks per one millisecond
  */
-#define RADIO_ALARM_MILLI_EXP	10
+#define RADIO_ALARM_MILLI_EXP	4
 
 /**
  * Make PACKET_LINK automaticaly enabled for Ieee154MessageC
