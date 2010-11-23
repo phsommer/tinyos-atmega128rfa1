@@ -12,6 +12,7 @@
   %T/chips/atm128rfa1
   %T/chips/atm128rfa1/pins
   %T/chips/atm128rfa1/radio
+  %T/chips/atm128rfa1/timer
   %T/chips/atm1281
   %T/chips/atm1281/adc
   %T/chips/atm1281/timer
