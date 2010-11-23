@@ -1,38 +1,43 @@
 /*
-* Copyright (c) 2010, University of Szeged
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-*
-* - Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* - Redistributions in binary form must reproduce the above
-* copyright notice, this list of conditions and the following
-* disclaimer in the documentation and/or other materials provided
-* with the distribution.
-* - Neither the name of University of Szeged nor the names of its
-* contributors may be used to endorse or promote products derived
-* from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-* OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-* Author: Miklos Maroti
-* Author: Andras Biro
-* Author: Philipp Sommer
-*/
+ * Copyright (c) 2007, Vanderbilt University
+ * Copyright (c) 2010, University of Szeged
+ * Copyright (c) 2010, ETH Zurich
+ * 
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ * - Neither the name of the copyright holder nor the names of
+ *   its contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Author: Miklos Maroti
+ * Author: Andras Biro
+ * Author: Philipp Sommer
+ */
+
+
 
 #include <RFA1DriverLayer.h>
 #include <Tasklet.h>
@@ -549,10 +554,10 @@ implementation
 
 
 #ifdef RFA1_RSSI_ENERGY
-      if( irq & IRQ_TRX_END )
+      if( irq & IRQ_TX_END )
       {
-        if( irq == IRQ_TRX_END || 
-          (irq == (IRQ_RX_START | IRQ_TRX_END) && cmd == CMD_NONE) )
+        if( irq == IRQ_TX_END || 
+          (irq == (IRQ_RX_START | IRQ_TX_END) && cmd == CMD_NONE) )
           call PacketRSSI.set(rxMsg, PHY_ED_LEVEL);
         else
           call PacketRSSI.clear(rxMsg);
@@ -661,7 +666,12 @@ implementation
           // TODO: we could have missed a received message
           ASSERT( ! (irq & IRQ_RX_START) );
         }
-        else if( cmd == CMD_RECEIVE )
+      }
+      
+      if( irq & IRQ_RX_END ) 
+      { 
+      
+        if( cmd == CMD_RECEIVE )
         {
           ASSERT( state == STATE_RX_ON || state == STATE_PLL_ON_2_RX_ON );
 
@@ -892,7 +902,7 @@ implementation
 
     ASSERT( ! radioIrq );
     atomic {
-      radioIrq |= IRQ_TX_END;
+      radioIrq |= IRQ_RX_END;
     }
     call Tasklet.schedule();
   }
