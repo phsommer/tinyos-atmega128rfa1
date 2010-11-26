@@ -44,7 +44,7 @@ module RadioAlarmP
 
 	uses
 	{
-		interface Alarm<TRadio, uint32_t>;
+		interface Alarm<TRadio, TRadioSize>;
 		interface Tasklet;
 	}
 }
@@ -72,7 +72,7 @@ implementation
 		call Tasklet.schedule();
 	}
 
-	inline async command uint32_t RadioAlarm.getNow[uint8_t id]()
+	inline async command TRadioSize RadioAlarm.getNow[uint8_t id]()
 	{
 		return call Alarm.getNow();
 	}
@@ -95,7 +95,7 @@ implementation
 		return state == STATE_READY;
 	}
 
-	tasklet_async command void RadioAlarm.wait[uint8_t id](uint32_t timeout)
+	tasklet_async command void RadioAlarm.wait[uint8_t id](TRadioSize timeout)
 	{
 		ASSERT( state == STATE_READY );
 

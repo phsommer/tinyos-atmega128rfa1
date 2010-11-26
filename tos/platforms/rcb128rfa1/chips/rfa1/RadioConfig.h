@@ -75,6 +75,12 @@ inline uint16_t RFA1_CRCBYTE_COMMAND(uint16_t crc, uint8_t data)
 typedef T62khz TRadio;
 
 /**
+ * This is the size type of the radio alarm interface
+ */
+typedef uint32_t TRadioSize;
+
+
+/**
  * The number of radio alarm ticks per one microsecond
  */
 #define RADIO_ALARM_MICROSEC	62500UL / 1000000UL
