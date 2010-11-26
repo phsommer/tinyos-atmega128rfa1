@@ -257,5 +257,9 @@ implementation
 
 	components RadioAlarmC, new Alarm62khz32C() as AlarmC;
 	RadioAlarmC.Alarm -> AlarmC;
+
+	components Counter62khz32C, MotePlatformP;
+	MotePlatformP.SubInit -> Counter62khz32C;
+	
 	
 }
