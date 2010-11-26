@@ -32,49 +32,32 @@
  * Author: Miklos Maroti
  */
 
-generic module AtmegaCounterP(typedef precision_tag, typedef size_type @integer(), uint8_t mode)
-{
-	provides
-	{
-		interface Init @exactlyonce();
-		interface Counter<precision_tag, size_type>;
-	}
+#include "TimerConfig.h"
 
-	uses
-	{
-		interface AtmegaCounter<size_type>;
-	}
+generic configuration AlarmMcu32C()
+{
+	provides interface Alarm<TMcu, uint32_t>;
 }
 
 implementation
 {
-	command error_t Init.init()
-	{
-		call AtmegaCounter.setMode(mode);
-		call AtmegaCounter.start();
+	components new TransformAlarmC(TMcu, uint32_t, TMcu, uint16_t, 0);
+	Alarm = TransformAlarmC;
+	TransformAlarmC.Counter -> CounterMcu32C;
+	TransformAlarmC.AlarmFrom -> AtmegaCompareP;
+	
+	components CounterMcu32C;
+	components new AtmegaCompareP(TMcu, uint16_t, MCU_ALARM_MODE, MCU_ALARM_MINDT);
 
-		return SUCCESS;
-	}
+	components RealMainP;
+	RealMainP.PlatformInit -> AtmegaCompareP.Init;
 
-	async command size_type Counter.get()
-	{
-		return call AtmegaCounter.get();
-	}
+#if MCU_TIMER_NO == 1
+	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;
+#elif MCU_TIMER_NO == 3
+	components HplAtmRfa1Timer3C as HplAtmRfa1TimerC;
+#endif
 
-	default async event void Counter.overflow() { }
-
-	async event void AtmegaCounter.overflow()
-	{
-		signal Counter.overflow();
-	}
-
-	async command bool Counter.isOverflowPending()
-	{
-		atomic return call AtmegaCounter.test();
-	}
-
-	async command void Counter.clearOverflow()
-	{
-		call AtmegaCounter.reset();
-	}
+	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerC;
+	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerC.Compare[unique(UQ_MCU_ALARM)];
 }

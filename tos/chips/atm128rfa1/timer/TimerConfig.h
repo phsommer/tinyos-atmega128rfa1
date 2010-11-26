@@ -32,49 +32,27 @@
  * Author: Miklos Maroti
  */
 
-generic module AtmegaCounterP(typedef precision_tag, typedef size_type @integer(), uint8_t mode)
-{
-	provides
-	{
-		interface Init @exactlyonce();
-		interface Counter<precision_tag, size_type>;
-	}
+#ifndef __TIMERCONFIG_H__
+#define __TIMERCONFIG_H__
 
-	uses
-	{
-		interface AtmegaCounter<size_type>;
-	}
-}
+#include "HplAtmRfa1Timer.h"
 
-implementation
-{
-	command error_t Init.init()
-	{
-		call AtmegaCounter.setMode(mode);
-		call AtmegaCounter.start();
+// Set the MCU timer parameters
 
-		return SUCCESS;
-	}
+#define PLATFORM_MHZ 16
 
-	async command size_type Counter.get()
-	{
-		return call AtmegaCounter.get();
-	}
+typedef struct T16mhz { } T16mhz;
+typedef T16mhz TMcu;
 
-	default async event void Counter.overflow() { }
+enum {
+	MCU_TIMER_MODE = ATMRFA1_CLK16_NORMAL,
+	MCU_ALARM_MODE = 0,
+	MCU_ALARM_MINDT = 100,
+};
 
-	async event void AtmegaCounter.overflow()
-	{
-		signal Counter.overflow();
-	}
+// selects which 16-bit TimerCounter should be used (1 or 3)
+#define MCU_TIMER_NO 1
 
-	async command bool Counter.isOverflowPending()
-	{
-		atomic return call AtmegaCounter.test();
-	}
+#define UQ_MCU_ALARM	"UQ_MCU_ALARM"
 
-	async command void Counter.clearOverflow()
-	{
-		call AtmegaCounter.reset();
-	}
-}
+#endif//__TIMERCONFIG_H__

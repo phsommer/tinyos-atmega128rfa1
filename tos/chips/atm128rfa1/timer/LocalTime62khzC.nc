@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2010, University of Szeged
+ * Copyright (c) 2010, ETH Zurich
+ * 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,52 +30,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Miklos Maroti
+ * Author: Philipp Sommer
  */
 
-generic module AtmegaCounterP(typedef precision_tag, typedef size_type @integer(), uint8_t mode)
-{
-	provides
-	{
-		interface Init @exactlyonce();
-		interface Counter<precision_tag, size_type>;
-	}
+#include "HplAtmRfa1Timer.h"
 
-	uses
-	{
-		interface AtmegaCounter<size_type>;
-	}
+configuration LocalTime62khzC
+{
+	provides interface LocalTime<T62khz>;
 }
 
 implementation
 {
-	command error_t Init.init()
-	{
-		call AtmegaCounter.setMode(mode);
-		call AtmegaCounter.start();
+	components Counter62khz32C;
+	components new CounterToLocalTimeC(T62khz) as LocalTime62khzC;
 
-		return SUCCESS;
-	}
-
-	async command size_type Counter.get()
-	{
-		return call AtmegaCounter.get();
-	}
-
-	default async event void Counter.overflow() { }
-
-	async event void AtmegaCounter.overflow()
-	{
-		signal Counter.overflow();
-	}
-
-	async command bool Counter.isOverflowPending()
-	{
-		atomic return call AtmegaCounter.test();
-	}
-
-	async command void Counter.clearOverflow()
-	{
-		call AtmegaCounter.reset();
-	}
+	LocalTime62khzC.Counter -> Counter62khz32C;  
+	LocalTime = LocalTime62khzC;
 }

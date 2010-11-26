@@ -32,49 +32,27 @@
  * Author: Miklos Maroti
  */
 
-generic module AtmegaCounterP(typedef precision_tag, typedef size_type @integer(), uint8_t mode)
+configuration HplAtmRfa1Timer1C
 {
 	provides
 	{
-		interface Init @exactlyonce();
-		interface Counter<precision_tag, size_type>;
-	}
-
-	uses
-	{
-		interface AtmegaCounter<size_type>;
+		interface AtmegaCounter<uint16_t> as Counter;
+		interface AtmegaCompare<uint16_t> as Compare[uint8_t id];
+//		interface AtmegaCapture<uint16_t> as Capture;
 	}
 }
 
 implementation
 {
-	command error_t Init.init()
-	{
-		call AtmegaCounter.setMode(mode);
-		call AtmegaCounter.start();
+	components HplAtmRfa1Timer1P;
 
-		return SUCCESS;
-	}
+	Counter = HplAtmRfa1Timer1P;
+	Compare[0] = HplAtmRfa1Timer1P.CompareA;
+//	Compare[1] = HplAtmRfa1Timer1P.CompareB;
+//	Compare[2] = HplAtmRfa1Timer1P.CompareC;
+//	Capture = HplAtmRfa1Timer1P;
 
-	async command size_type Counter.get()
-	{
-		return call AtmegaCounter.get();
-	}
-
-	default async event void Counter.overflow() { }
-
-	async event void AtmegaCounter.overflow()
-	{
-		signal Counter.overflow();
-	}
-
-	async command bool Counter.isOverflowPending()
-	{
-		atomic return call AtmegaCounter.test();
-	}
-
-	async command void Counter.clearOverflow()
-	{
-		call AtmegaCounter.reset();
-	}
+	components McuSleepC;
+	HplAtmRfa1Timer1P.McuPowerState -> McuSleepC;
+	HplAtmRfa1Timer1P.McuPowerOverride <- McuSleepC;
 }

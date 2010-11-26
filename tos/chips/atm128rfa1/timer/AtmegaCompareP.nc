@@ -36,7 +36,7 @@ generic module AtmegaCompareP(typedef precision_tag, typedef size_type @integer(
 {
 	provides
 	{
-		interface Init;
+		interface Init @exactlyonce();
 		interface Alarm<precision_tag, size_type>;
 	}
 

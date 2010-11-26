@@ -38,28 +38,17 @@ configuration Counter62khz32C
 {
 	provides
 	{
-		interface Init;
+		interface Init @exactlyonce();
 		interface Counter<T62khz, uint32_t>;
-
-		interface Alarm<T62khz, uint32_t> as Alarm[uint8_t id];
 	}
 }
 
 implementation
 {
-	components McuSleepC;
-
-	components HplAtmRfa1TimerMacP;
-	HplAtmRfa1TimerMacP.McuPowerOverride <- McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerState -> McuSleepC;
-
-	components new AtmegaCounterP(T62khz, uint32_t, ATMRFA1_SCCK_RTC | ATMRFA1_SCCK_ENABLE);
+	components new AtmegaCounterP(T62khz, uint32_t, ATMRFA1_SCCK_RTC);
 	Init = AtmegaCounterP;
 	Counter = AtmegaCounterP;
-	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerMacP;
 
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
-	Alarm[0] = AtmegaCompareP;
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacP;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacP.CompareA;
+	components HplAtmRfa1TimerMacC;
+	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerMacC;
 }

@@ -32,49 +32,29 @@
  * Author: Miklos Maroti
  */
 
-generic module AtmegaCounterP(typedef precision_tag, typedef size_type @integer(), uint8_t mode)
-{
-	provides
-	{
-		interface Init @exactlyonce();
-		interface Counter<precision_tag, size_type>;
-	}
+#include "TimerConfig.h"
 
-	uses
-	{
-		interface AtmegaCounter<size_type>;
-	}
+configuration CounterMcu32C
+{
+	provides interface Counter<TMcu, uint32_t>;
 }
 
 implementation
 {
-	command error_t Init.init()
-	{
-		call AtmegaCounter.setMode(mode);
-		call AtmegaCounter.start();
+	components new TransformCounterC(TMcu, uint32_t, TMcu, uint16_t, 0, uint16_t);
+	Counter = TransformCounterC;
+	TransformCounterC.CounterFrom -> AtmegaCounterP;
 
-		return SUCCESS;
-	}
+	components new AtmegaCounterP(TMcu, uint16_t, MCU_TIMER_MODE);
 
-	async command size_type Counter.get()
-	{
-		return call AtmegaCounter.get();
-	}
+	components RealMainP;
+	RealMainP.PlatformInit -> AtmegaCounterP.Init;
 
-	default async event void Counter.overflow() { }
+#if MCU_TIMER_NO == 1
+	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;
+#elif MCU_TIMER_NO == 3
+	components HplAtmRfa1Timer3C as HplAtmRfa1TimerC;
+#endif
 
-	async event void AtmegaCounter.overflow()
-	{
-		signal Counter.overflow();
-	}
-
-	async command bool Counter.isOverflowPending()
-	{
-		atomic return call AtmegaCounter.test();
-	}
-
-	async command void Counter.clearOverflow()
-	{
-		call AtmegaCounter.reset();
-	}
+	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerC;
 }

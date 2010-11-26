@@ -36,15 +36,18 @@
 
 generic configuration Alarm62khz32C()
 {
-	provides
-	{
-		interface Alarm<T62khz, uint32_t>;
-	}
+	provides interface Alarm<T62khz, uint32_t>;
 }
 
 implementation
 {
-	components Counter62khz32C;
+	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
+	Alarm = AtmegaCompareP;
 
-	Alarm = Counter62khz32C.Alarm[unique(UQ_T62KHZ_ALARM)];
+	components RealMainP;
+	RealMainP.PlatformInit -> AtmegaCompareP;
+
+	components HplAtmRfa1TimerMacC;
+	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
+	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
 }

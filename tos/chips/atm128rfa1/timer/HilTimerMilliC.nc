@@ -32,49 +32,33 @@
  * Author: Miklos Maroti
  */
 
-generic module AtmegaCounterP(typedef precision_tag, typedef size_type @integer(), uint8_t mode)
+#include "HplAtmRfa1Timer.h"
+
+configuration HilTimerMilliC
 {
 	provides
 	{
-		interface Init @exactlyonce();
-		interface Counter<precision_tag, size_type>;
-	}
-
-	uses
-	{
-		interface AtmegaCounter<size_type>;
+		interface Init;
+		interface Timer<TMilli> as TimerMilli[uint8_t id];
+		interface LocalTime<TMilli>;
 	}
 }
 
 implementation
 {
-	command error_t Init.init()
-	{
-		call AtmegaCounter.setMode(mode);
-		call AtmegaCounter.start();
+	components CounterMilli32C;
+	Init = CounterMilli32C;
 
-		return SUCCESS;
-	}
+	components new CounterToLocalTimeC(TMilli);
+	LocalTime = CounterToLocalTimeC;
+	CounterToLocalTimeC.Counter -> CounterMilli32C;
 
-	async command size_type Counter.get()
-	{
-		return call AtmegaCounter.get();
-	}
+	components new AlarmMilli32C();
 
-	default async event void Counter.overflow() { }
+	components new AlarmToTimerC(TMilli);
+	AlarmToTimerC.Alarm -> AlarmMilli32C;
 
-	async event void AtmegaCounter.overflow()
-	{
-		signal Counter.overflow();
-	}
-
-	async command bool Counter.isOverflowPending()
-	{
-		atomic return call AtmegaCounter.test();
-	}
-
-	async command void Counter.clearOverflow()
-	{
-		call AtmegaCounter.reset();
-	}
+	components new VirtualizeTimerC(TMilli, uniqueCount(UQ_TIMER_MILLI));
+	TimerMilli = VirtualizeTimerC;
+	VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
 }

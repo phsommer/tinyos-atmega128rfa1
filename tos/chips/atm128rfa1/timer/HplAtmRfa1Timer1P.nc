@@ -42,6 +42,7 @@ module HplAtmRfa1Timer1P @safe()
 		interface AtmegaCompare<uint16_t> as CompareA;
 //		interface AtmegaCompare<uint16_t> as CompareB;
 //		interface AtmegaCompare<uint16_t> as CompareC;
+//		interface AtmegaCapture<uint16_t> as Capture;
 		interface McuPowerOverride;
 	}
 
