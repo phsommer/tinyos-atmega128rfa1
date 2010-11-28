@@ -693,15 +693,6 @@ implementation
       }
   }
 
-  default tasklet_async event bool RadioReceive.header(message_t* msg)
-  {
-    return TRUE;
-  }
-
-  default tasklet_async event message_t* RadioReceive.receive(message_t* msg)
-  {
-    return msg;
-  }
 
   /*----------------- TASKLET -----------------*/
 
@@ -730,6 +721,88 @@ implementation
       signal RadioSend.ready();
 
   }
+
+  /*----------------- INTERRUPTS -----------------*/
+
+  /**
+  * Indicates the start of a PSDU reception.
+  */
+  AVR_ATOMIC_HANDLER(TRX24_RX_START_vect) {
+    
+    ASSERT( ! radioIrq );
+    atomic {
+      radioIrq |= IRQ_RX_START;
+    }
+    call Tasklet.schedule();
+  }
+
+  /**
+  * Indicates the completion of a frame reception
+  */
+  AVR_ATOMIC_HANDLER(TRX24_RX_END_vect) {
+
+    ASSERT( ! radioIrq );
+    atomic {
+      radioIrq |= IRQ_RX_END;
+    }
+    call Tasklet.schedule();
+  }
+
+  /**
+  * Indicates the completion of a frame transmission
+  */
+  AVR_ATOMIC_HANDLER(TRX24_TX_END_vect) {
+    ASSERT( ! radioIrq );
+    atomic {
+      radioIrq |= IRQ_TX_END;
+    }
+    call Tasklet.schedule();
+  }
+
+  /**
+  * Indicates PLL lock
+  */
+  AVR_ATOMIC_HANDLER(TRX24_PLL_LOCK_vect) {
+    ASSERT( ! radioIrq );
+    atomic {
+      radioIrq |= IRQ_PLL_LOCK;
+    }
+    call Tasklet.schedule();
+  }
+
+  /**
+  * Indicates PLL unlock
+  */
+  AVR_ATOMIC_HANDLER(TRX24_PLL_UNLOCK_vect) {}
+
+    /**
+     * Indicates radio transceiver reached TRX_OFF state from RESET or SLEEP states
+     */
+  AVR_ATOMIC_HANDLER(TRX24_AWAKE_vect) {
+    ASSERT( ! radioIrq );
+    atomic {
+      radioIrq |= IRQ_AWAKE;
+    }
+    call Tasklet.schedule();
+  }
+
+  /**
+  * Indicates the end of a CCA or ED measurement 
+  */
+  AVR_ATOMIC_HANDLER(TRX24_CCA_ED_DONE_vect) {
+    ASSERT( ! radioIrq );
+    atomic {
+      radioIrq |= IRQ_CCA_ED_DONE;
+    }
+    call Tasklet.schedule();
+  }
+
+  /**
+  * Indicates address matching
+  */
+  AVR_ATOMIC_HANDLER(TRX24_XAH_AMI_vect){}
+  
+
 
   /*----------------- RadioPacket -----------------*/
 	
@@ -863,87 +936,18 @@ implementation
     getMeta(msg)->lqi = value;
   }
 
-  
-  /*----------------- INTERRUPTS -----------------*/
 
-  /**
-  * Indicates the start of a PSDU reception.
-  */
-  AVR_ATOMIC_HANDLER(TRX24_RX_START_vect) {
-    
-    ASSERT( ! radioIrq );
-    atomic {
-      radioIrq |= IRQ_RX_START;
-    }
-    call Tasklet.schedule();
+  /*----------------- RadioReceive -----------------*/
+
+  default tasklet_async event bool RadioReceive.header(message_t* msg)
+  {
+    return TRUE;
   }
 
-  /**
-  * Indicates the completion of a frame reception
-  */
-  AVR_ATOMIC_HANDLER(TRX24_RX_END_vect) {
-
-    ASSERT( ! radioIrq );
-    atomic {
-      radioIrq |= IRQ_RX_END;
-    }
-    call Tasklet.schedule();
+  default tasklet_async event message_t* RadioReceive.receive(message_t* msg)
+  {
+    return msg;
   }
-
-  /**
-  * Indicates the completion of a frame transmission
-  */
-  AVR_ATOMIC_HANDLER(TRX24_TX_END_vect) {
-    ASSERT( ! radioIrq );
-    atomic {
-      radioIrq |= IRQ_TX_END;
-    }
-    call Tasklet.schedule();
-  }
-
-  /**
-  * Indicates PLL lock
-  */
-  AVR_ATOMIC_HANDLER(TRX24_PLL_LOCK_vect) {
-    ASSERT( ! radioIrq );
-    atomic {
-      radioIrq |= IRQ_PLL_LOCK;
-    }
-    call Tasklet.schedule();
-  }
-
-  /**
-  * Indicates PLL unlock
-  */
-  AVR_ATOMIC_HANDLER(TRX24_PLL_UNLOCK_vect) {}
-
-    /**
-     * Indicates radio transceiver reached TRX_OFF state from RESET or SLEEP states
-     */
-  AVR_ATOMIC_HANDLER(TRX24_AWAKE_vect) {
-    ASSERT( ! radioIrq );
-    atomic {
-      radioIrq |= IRQ_AWAKE;
-    }
-    call Tasklet.schedule();
-  }
-
-  /**
-  * Indicates the end of a CCA or ED measurement 
-  */
-  AVR_ATOMIC_HANDLER(TRX24_CCA_ED_DONE_vect) {
-    ASSERT( ! radioIrq );
-    atomic {
-      radioIrq |= IRQ_CCA_ED_DONE;
-    }
-    call Tasklet.schedule();
-  }
-
-  /**
-  * Indicates address matching
-  */
-  AVR_ATOMIC_HANDLER(TRX24_XAH_AMI_vect){}
-  
   
   
 }
