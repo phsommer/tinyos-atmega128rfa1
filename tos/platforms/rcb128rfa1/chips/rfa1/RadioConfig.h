@@ -77,7 +77,7 @@ typedef T62khz TRadio;
 /**
  * This is the size type of the radio alarm interface
  */
-typedef uint32_t TRadioSize;
+typedef uint32_t tradio_size;
 
 
 /**
