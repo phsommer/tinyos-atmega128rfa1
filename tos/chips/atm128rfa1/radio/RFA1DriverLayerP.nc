@@ -67,8 +67,6 @@ module RFA1DriverLayerP
 
   uses
   {
-    interface BusyWait<TMicro, uint16_t>;
-
     interface RFA1DriverConfig as Config;
 
     interface PacketFlag as TransmitPowerFlag;

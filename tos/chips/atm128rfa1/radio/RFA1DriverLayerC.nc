@@ -52,7 +52,7 @@ configuration RFA1DriverLayerC
 
 implementation
 {
-	components RFA1DriverLayerP, BusyWaitMicroC, TaskletC, MainC;
+	components RFA1DriverLayerP, TaskletC, MainC;
 
 	RadioState = RFA1DriverLayerP;
 	RadioSend = RFA1DriverLayerP;
@@ -82,7 +82,6 @@ implementation
 	LocalTimeRadio = LocalTime62khzC;
 
 	RFA1DriverLayerP.Tasklet -> TaskletC;
-	RFA1DriverLayerP.BusyWait -> BusyWaitMicroC;
 
 #ifdef RADIO_DEBUG
 	components DiagMsgC;
