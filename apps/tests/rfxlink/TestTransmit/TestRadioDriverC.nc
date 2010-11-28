@@ -44,6 +44,7 @@ implementation
 	TestRadioDriverP.SplitControl -> SerialActiveMessageC;
 	TestRadioDriverP.RadioState -> RadioDriverLayerC;
 	TestRadioDriverP.RadioSend -> RadioDriverLayerC;
+	TestRadioDriverP.RadioReceive -> RadioDriverLayerC;
 	TestRadioDriverP.RadioPacket -> TimeStampingLayerC;
 	TestRadioDriverP.RadioAlarm -> RadioAlarmC.RadioAlarm[unique("RadioAlarm")];
 	TestRadioDriverP.Leds -> LedsC;
@@ -68,8 +69,11 @@ implementation
 	components RF230DriverLayerC as RadioDriverLayerC;
 #elif defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSA) || defined(PLATFORM_TELOSB)
 	components CC2420XDriverLayerC as RadioDriverLayerC;
+#elif defined(PLATFORM_UCMINI)
+	components RFA1DriverLayerC as RadioDriverLayerC;
 #endif
 
-	RadioDriverLayerC.Config -> TestRadioDriverP;
+	components RadioDriverConfigP;
 	RadioDriverLayerC.PacketTimeStamp -> TimeStampingLayerC;
+	RadioDriverLayerC.Config -> RadioDriverConfigP;
 }
