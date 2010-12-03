@@ -3,12 +3,7 @@
 
   %T/platforms/rcb128rfa1
   %T/platforms/rcb128rfa1/chips/rfa1
-  %T/platforms/iris
-  %T/platforms/micaz
-  %T/platforms/mica
   %T/chips/atm128rfa1
-  %T/lib/rfxlink/layers
-  %T/lib/rfxlink/util
   %T/chips/atm128rfa1
   %T/chips/atm128rfa1/pins
   %T/chips/atm128rfa1/radio
@@ -19,11 +14,10 @@
   %T/chips/atm1281/usart
   %T/chips/atm1281/pins
   %T/chips/atm128
-  %T/chips/atm128/adc
   %T/chips/atm128/pins
-  %T/chips/atm128/spi
-  %T/chips/atm128/i2c
   %T/chips/atm128/timer
+  %T/lib/rfxlink/layers
+  %T/lib/rfxlink/util
   %T/lib/timer
   %T/lib/serial
   %T/lib/power

@@ -32,31 +32,30 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
-
-configuration HplAtmRfa1TimerMacC
+configuration PlatformC
 {
 	provides
 	{
-		interface AtmegaCounter<uint32_t> as Counter;
-		interface AtmegaCompare<uint32_t> as Compare[uint8_t id];
-		interface AtmegaCapture<uint32_t> as SfdCapture;
-		interface AtmegaCapture<uint32_t> as BeaconCapture;
+		interface Init;
+		interface Atm128Calibrate;
 	}
-}
 
+	uses
+	{
+		interface Init as TimerInit;
+		interface Init as LedsInit;
+	}
+
+}
 implementation
 {
-	components HplAtmRfa1TimerMacP;
+	components PlatformP, MeasureClockC;
+  
+	Init = PlatformP;
+	Atm128Calibrate = MeasureClockC;
 
-	Counter = HplAtmRfa1TimerMacP;
-	Compare[0] = HplAtmRfa1TimerMacP.CompareA;
-	Compare[1] = HplAtmRfa1TimerMacP.CompareB;
-	Compare[2] = HplAtmRfa1TimerMacP.CompareC;
-	SfdCapture = HplAtmRfa1TimerMacP.SfdCapture;
-	BeaconCapture = HplAtmRfa1TimerMacP.BeaconCapture;
+	PlatformP.MeasureClock -> MeasureClockC;
+	TimerInit = PlatformP.TimerInit;
+	LedsInit = PlatformP.LedsInit;
 
-	components McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerState -> McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerOverride <- McuSleepC;
 }

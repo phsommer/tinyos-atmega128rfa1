@@ -34,13 +34,14 @@
 
 #include "HplAtmRfa1Timer.h"
 
-module HplAtmRfa1Timer2P @safe()
+module HplAtmRfa1TimerAsyncP @safe()
 {
 	provides
 	{
 		interface AtmegaCounter<uint8_t> as Timer;
 		interface AtmegaCompare<uint8_t> as CompareA;
 //		interface AtmegaCompare<uint8_t> as CompareB;
+//		interface AtmegaCompare<uint8_t> as CompareC;
 		interface McuPowerOverride;
 	}
 
@@ -65,6 +66,7 @@ implementation
 
 	async command uint8_t Timer.get()
 	{
+		// TODO: make sure we wait at least one 1/32768 clock tick after wakeup
 		return TCNT2;
 	}
 
@@ -87,7 +89,8 @@ implementation
 
 	AVR_ATOMIC_HANDLER(TIMER2_OVF_vect)
 	{
-//		TCCR2A = TCCR2A;
+		// to keep the MCU from going to sleep too early
+		TCCR2A = TCCR2A;
 		call McuPowerState.update();
 
 		signal Timer.overflow();
@@ -102,14 +105,12 @@ implementation
 	async command void Timer.start()
 	{
 		SET_BIT(TIMSK2, TOIE2);
-
 		call McuPowerState.update();
 	}
 
 	async command void Timer.stop()
 	{
 		CLR_BIT(TIMSK2, TOIE2);
-
 		call McuPowerState.update();
 	}
 
@@ -155,7 +156,7 @@ implementation
 			| ((c >> CS20) & 0x7) << 0;
 	}
 
-// ----- COMPAREA: output compare register (OCR)
+// ----- COMPARE A: output compare register (OCR)
 
 	async command uint8_t CompareA.get() { return OCR2A; }
 
@@ -172,14 +173,15 @@ implementation
 		call McuPowerState.update();
 	}
 
-// ----- COMPAREA: timer interrupt flag register (TIFR), output comare match flag (OCF)
+// ----- COMPARE A: timer interrupt flag register (TIFR), output comare match flag (OCF)
 
 	default async event void CompareA.fired() { }
 
 	AVR_ATOMIC_HANDLER(TIMER2_COMPA_vect)
 	{ 
-//		TCCR2A = TCCR2A;
-//		call McuPowerState.update();
+		// to keep the MCU from going to sleep too early
+		TCCR2A = TCCR2A;
+		call McuPowerState.update();
 
 		signal CompareA.fired();
 	}
@@ -188,25 +190,23 @@ implementation
 
 	async command void CompareA.reset() { TIFR2 = 1 << OCF2A; }
 
-// ----- COMPAREA: timer interrupt mask register (TIMSK), output compare interrupt enable (OCIE)
+// ----- COMPARE A: timer interrupt mask register (TIMSK), output compare interrupt enable (OCIE)
 
 	async command void CompareA.start()
 	{
 		SET_BIT(TIMSK2, OCIE2A);
-
 		call McuPowerState.update();
 	}
 
 	async command void CompareA.stop()
 	{
 		CLR_BIT(TIMSK2, OCIE2A);
-
 		call McuPowerState.update();
 	}
 
 	async command bool CompareA.isOn() { return TIMSK2 & (1 << OCIE2A); }
 
-// ----- COMPAREA: timer control register (TCCR), compare output mode (COM)
+// ----- COMPARE A: timer control register (TCCR), compare output mode (COM)
 
 	async command void CompareA.setMode(uint8_t mode)
 	{
@@ -227,7 +227,7 @@ implementation
 		return (TCCR2A >> COM2A0) & 0x3;
 	}
 
-// ----- COMPAREA: timer control register (TCCR), force output compare (FOC)
+// ----- COMPARE A: timer control register (TCCR), force output compare (FOC)
 
 	async command void CompareA.force()
 	{

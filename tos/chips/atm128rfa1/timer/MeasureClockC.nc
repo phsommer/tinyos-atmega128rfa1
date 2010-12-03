@@ -41,7 +41,6 @@
  *
  */
 
-#include <MicaTimer.h>
 #include <scale.h>
 
 /**

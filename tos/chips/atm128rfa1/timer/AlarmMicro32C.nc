@@ -32,31 +32,26 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
-configuration HplAtmRfa1TimerMacC
+generic configuration AlarmMicro32C()
 {
-	provides
-	{
-		interface AtmegaCounter<uint32_t> as Counter;
-		interface AtmegaCompare<uint32_t> as Compare[uint8_t id];
-		interface AtmegaCapture<uint32_t> as SfdCapture;
-		interface AtmegaCapture<uint32_t> as BeaconCapture;
-	}
+	provides interface Alarm<TMicro, uint32_t>;
 }
 
 implementation
 {
-	components HplAtmRfa1TimerMacP;
+#if MCU_TIMER_MHZ_LOG2 == 0
+	components new AlarmMcu32C();
+	Alarm = AlarmMcu32C;
+#else
+	components new AlarmMcu32C();
+	components CounterMicro32C;
+	components new TransformAlarmC(TMicro, uint32_t, TMcu, uint32_t, MCU_TIMER_MHZ_LOG2);
 
-	Counter = HplAtmRfa1TimerMacP;
-	Compare[0] = HplAtmRfa1TimerMacP.CompareA;
-	Compare[1] = HplAtmRfa1TimerMacP.CompareB;
-	Compare[2] = HplAtmRfa1TimerMacP.CompareC;
-	SfdCapture = HplAtmRfa1TimerMacP.SfdCapture;
-	BeaconCapture = HplAtmRfa1TimerMacP.BeaconCapture;
+	Alarm = TransformAlarmC;
 
-	components McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerState -> McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerOverride <- McuSleepC;
+	TransformAlarmC.AlarmFrom -> AlarmMcu32C;
+	TransformAlarmC.Counter -> CounterMicro32C;
+#endif
 }

@@ -44,20 +44,7 @@ implementation
 	components new TransformAlarmC(TMcu, uint32_t, TMcu, uint16_t, 0);
 	Alarm = TransformAlarmC;
 	TransformAlarmC.Counter -> CounterMcu32C;
-	TransformAlarmC.AlarmFrom -> AtmegaCompareP;
+	TransformAlarmC.AlarmFrom -> AlarmMcu16C;
 	
-	components CounterMcu32C;
-	components new AtmegaCompareP(TMcu, uint16_t, MCU_ALARM_MODE, MCU_ALARM_MINDT);
-
-	components RealMainP;
-	RealMainP.PlatformInit -> AtmegaCompareP.Init;
-
-#if MCU_TIMER_NO == 1
-	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;
-#elif MCU_TIMER_NO == 3
-	components HplAtmRfa1Timer3C as HplAtmRfa1TimerC;
-#endif
-
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerC;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerC.Compare[unique(UQ_MCU_ALARM)];
+	components CounterMcu32C, new AlarmMcu16C();
 }

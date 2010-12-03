@@ -32,31 +32,24 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
-configuration HplAtmRfa1TimerMacC
+configuration BusyWaitMicroC
 {
-	provides
-	{
-		interface AtmegaCounter<uint32_t> as Counter;
-		interface AtmegaCompare<uint32_t> as Compare[uint8_t id];
-		interface AtmegaCapture<uint32_t> as SfdCapture;
-		interface AtmegaCapture<uint32_t> as BeaconCapture;
-	}
+	provides interface BusyWait<TMicro, uint16_t>;
 }
 
 implementation
 {
-	components HplAtmRfa1TimerMacP;
+	components new BusyWaitCounterC(TMicro, uint16_t); 
+	BusyWait = BusyWaitCounterC;
+	BusyWaitCounterC.Counter -> CounterMicro16C;
 
-	Counter = HplAtmRfa1TimerMacP;
-	Compare[0] = HplAtmRfa1TimerMacP.CompareA;
-	Compare[1] = HplAtmRfa1TimerMacP.CompareB;
-	Compare[2] = HplAtmRfa1TimerMacP.CompareC;
-	SfdCapture = HplAtmRfa1TimerMacP.SfdCapture;
-	BeaconCapture = HplAtmRfa1TimerMacP.BeaconCapture;
-
-	components McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerState -> McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerOverride <- McuSleepC;
+#if MCU_TIMER_MHZ_LOG2 == 0
+	components CounterMcu16C as CounterMicro16C;
+#else
+	components new TransformCounterC(TMicro, uint16_t, TMcu, uint16_t, MCU_TIMER_MHZ_LOG2, uint8_t) as CounterMicro16C;
+	components CounterMcu16C;
+	CounterMicro16C.CounterFrom -> CounterMcu16C;
+#endif
 }

@@ -43,8 +43,8 @@ configuration LocalTime62khzC
 implementation
 {
 	components Counter62khz32C;
-	components new CounterToLocalTimeC(T62khz) as LocalTime62khzC;
+	components new CounterToLocalTimeC(T62khz);
 
-	LocalTime62khzC.Counter -> Counter62khz32C;  
-	LocalTime = LocalTime62khzC;
+	CounterToLocalTimeC.Counter -> Counter62khz32C;
+	LocalTime = CounterToLocalTimeC;
 }

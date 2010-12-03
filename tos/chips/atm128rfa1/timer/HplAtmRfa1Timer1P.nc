@@ -42,7 +42,7 @@ module HplAtmRfa1Timer1P @safe()
 		interface AtmegaCompare<uint16_t> as CompareA;
 //		interface AtmegaCompare<uint16_t> as CompareB;
 //		interface AtmegaCompare<uint16_t> as CompareC;
-//		interface AtmegaCapture<uint16_t> as Capture;
+		interface AtmegaCapture<uint16_t> as Capture;
 		interface McuPowerOverride;
 	}
 
@@ -120,7 +120,7 @@ implementation
 			| ((b >> CS10) & 0x7) << 0;
 	}
 
-// ----- COMPAREA: output compare register (OCR)
+// ----- COMPARE A: output compare register (OCR)
 
 	async command uint16_t CompareA.get()
 	{
@@ -132,7 +132,7 @@ implementation
 		atomic OCR1A = value;
 	}
 
-// ----- COMPAREA: timer interrupt flag register (TIFR), output comare match flag (OCF)
+// ----- COMPARE A: timer interrupt flag register (TIFR), output comare match flag (OCF)
 
 	default async event void CompareA.fired() { }
 
@@ -142,25 +142,23 @@ implementation
 
 	async command void CompareA.reset() { TIFR1 = 1 << OCF1A; }
 
-// ----- COMPAREA: timer interrupt mask register (TIMSK), output compare interrupt enable (OCIE)
+// ----- COMPARE A: timer interrupt mask register (TIMSK), output compare interrupt enable (OCIE)
 
 	async command void CompareA.start()
 	{
 		SET_BIT(TIMSK1, OCIE1A);
-
 		call McuPowerState.update();
 	}
 
 	async command void CompareA.stop()
 	{
 		CLR_BIT(TIMSK1, OCIE1A);
-
 		call McuPowerState.update();
 	}
 
 	async command bool CompareA.isOn() { return TIMSK1 & (1 << OCIE1A); }
 
-// ----- COMPAREA: timer control register (TCCR), compare output mode (COM)
+// ----- COMPARE A: timer control register (TCCR), compare output mode (COM)
 
 	async command void CompareA.setMode(uint8_t mode)
 	{
@@ -176,11 +174,65 @@ implementation
 		return (TCCR1A >> COM1A0) & 0x3;
 	}
 
-// ----- COMPAREA: timer control register (TCCR), force output compare (FOC)
+// ----- COMPARE A: timer control register (TCCR), force output compare (FOC)
 
 	async command void CompareA.force()
 	{
 		SET_BIT(TCCR1B, FOC1A);
+	}
+
+// ----- CAPTURE: input capture register (ICR)
+
+	async command uint16_t Capture.get()
+	{
+		atomic return ICR1;
+	}
+
+	async command void Capture.set(uint16_t value)
+	{
+		atomic ICR1 = value;
+	}
+
+// ----- CAPTURE: timer interrupt flag register (TIFR), input capture flag (ICF)
+
+	default async event void Capture.fired() { }
+
+	AVR_ATOMIC_HANDLER(TIMER1_CAPT_vect) { signal Capture.fired(); }
+
+	async command bool Capture.test() { return TIFR1 & (1 << ICF1); }
+
+	async command void Capture.reset() { TIFR1 = 1 << ICF1; }
+
+// ----- CAPTURE: timer interrupt mask register (TIMSK), input capture interrupt enable (ICIE)
+
+	async command void Capture.start()
+	{
+		SET_BIT(TIMSK1, ICIE1);
+		call McuPowerState.update();
+	}
+
+	async command void Capture.stop()
+	{
+		CLR_BIT(TIMSK1, ICIE1);
+		call McuPowerState.update();
+	}
+
+	async command bool Capture.isOn() { return TIMSK1 & (1 << ICIE1); }
+
+// ----- CAPTURE: timer control register (TCCR), input capture mode (COM)
+
+	async command void Capture.setMode(uint8_t mode)
+	{
+		atomic
+		{
+			TCCR1B = (TCCR1B & ~(0x3 << ICES1))
+				| (mode & 0x3) << ICES1;
+		}
+	}
+
+	async command uint8_t Capture.getMode()
+	{
+		return (TCCR1B >> ICES1) & 0x3;
 	}
 
 // ----- MCUPOWER
@@ -188,8 +240,8 @@ implementation
 	async command mcu_power_t McuPowerOverride.lowestState()
 	{
 		// if we need to wake up by this clock
-		if( TIMSK1 & (1 << TOIE1 | 1 << OCIE1A | 1 << OCIE1B) )
-			return ATM128_POWER_SAVE;
+		if( TIMSK1 & (1 << OCIE1A | 1 << OCIE1B | 1 << OCIE1C | 1 << ICIE1) )
+			return ATM128_POWER_IDLE;
 		else
 			return ATM128_POWER_DOWN;
 	}

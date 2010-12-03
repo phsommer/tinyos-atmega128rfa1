@@ -32,23 +32,97 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
-
-configuration Counter62khz32C
+generic module AtmegaRtcCounterP(typedef precision, uint8_t mode)
 {
 	provides
 	{
 		interface Init @exactlyonce();
-		interface Counter<T62khz, uint32_t>;
+		interface Counter<precision, uint16_t>;
+
+		// for the alarm
+		async command uint8_t getCounterHigh();
+	}
+
+	uses
+	{
+		interface AtmegaCounter<uint8_t>;
 	}
 }
 
 implementation
 {
-	components new AtmegaCounterP(T62khz, uint32_t, ATMRFA1_CLKSC_RTC);
-	Init = AtmegaCounterP;
-	Counter = AtmegaCounterP;
+	command error_t Init.init()
+	{
+		call AtmegaCounter.setMode(mode);
+		call AtmegaCounter.start();
 
-	components HplAtmRfa1TimerMacC;
-	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerMacC;
+		return SUCCESS;
+	}
+
+	volatile uint8_t high;
+
+	/*
+	 * Without prescaler the interrupt occurs when the Timer goes from 0 to 1,
+	 * so we can have two posible sequences of events
+	 *
+	 *	TST=0, CNT=0, TST=1, CNT=1, TST=1 ... TST=1, CNT=1, TST=0
+	 *	TST=0, CNT=0, TST=0, CNT=1, TST=1 ... TST=1, CNT=1, TST=0
+	 *
+	 * With the prescaler enabled the interrupt occurs while the Timer is 0
+	 * (one 32768 HZ tick after the Timer became 0), so we have one possibility:
+	 *
+	 *	TST=0, CNT=0, TST=1, CNT=0, TST=1 ... TST=1, CNT=0, TST=0
+	 */
+
+	async command uint16_t Counter.get()
+	{
+		uint8_t a, b;
+		bool c;
+
+		atomic
+		{
+			b = call AtmegaCounter.get();
+			c = call AtmegaCounter.test();
+			a = high;
+		}
+
+		if( c && b != 0 )
+			a += 1;
+
+		// overflow occurs when switching from 0 to 1.
+		b -= 1;
+
+		return (((uint16_t)a) << 8) + b;
+	}
+
+	async command bool Counter.isOverflowPending()
+	{
+		atomic return high == 0xFF && call AtmegaCounter.test();
+	}
+
+	async command void Counter.clearOverflow()
+	{
+		call AtmegaCounter.reset();
+	}
+
+	default async event void Counter.overflow() { }
+
+	// called in atomic context
+	async event void AtmegaCounter.overflow()
+	{
+		++high;
+
+		if( high == 0 )
+			signal Counter.overflow();
+	}
+
+	// used by the alarm
+	async command uint8_t getCounterHigh()
+	{
+		uint8_t h = high;
+		if( call AtmegaCounter.test() )
+			h += 1;
+
+		return h;
+	}
 }

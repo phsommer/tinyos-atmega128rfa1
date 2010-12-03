@@ -127,17 +127,17 @@ enum
 
 enum
 {
-	ATMRFA1_CAP16_NOISE_CANCEL = 0x01,
-	ATMRFA1_CAP16_EDGE_SELECT = 0x02,
+	ATMRFA1_CAP16_RISING_EDGE = 0x01,
+	ATMRFA1_CAP16_NOISE_CANCEL = 0x02,
 };
 
 // ----- AtmegaCounter.setMode for the mac symbol counter
 
 enum
 {
-	ATMRFA1_SCCK_DISABLE = 0,
-	ATMRFA1_SCCK_XTAL = 1 << SCEN,				// 16 MHz XTAL1
-	ATMRFA1_SCCK_RTC = (1 << SCEN) | (1 << SCCKSEL),	// 32 KHz RTC
+	ATMRFA1_CLKSC_DISABLE = 0,
+	ATMRFA1_CLKSC_XTAL = 1 << SCEN,				// 16 MHz XTAL1
+	ATMRFA1_CLKSC_RTC = (1 << SCEN) | (1 << SCCKSEL),	// 32 KHz RTC
 };
 
 
@@ -145,8 +145,16 @@ enum
 
 enum
 {
-	ATMRFA1_SCCM_ABSOLUTE = 0,
-	ATMRFA1_SCCM_RELATIVE = 1,
+	ATMRFA1_COMSC_ABSOLUTE = 0,
+	ATMRFA1_COMSC_RELATIVE = 1,
+};
+
+// ----- AtmegaCompare.setMode for the mac symbol counter
+
+enum
+{
+	ATMRFA1_CAPSC_OFF = 0,
+	ATMRFA1_CAPSC_ON = 1,
 };
 
 #endif//__HPLATMRFA1TIMER_H__

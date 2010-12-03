@@ -1,14 +1,13 @@
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
-#ifndef MHZ
-#define MHZ 8
-#endif
 
 #include <atm128hardware.h>
 #include <Atm128Adc.h>
-#include <MicaTimer.h>
 
+#ifndef PLATFORM_MHZ
+#define PLATFORM_MHZ 8
+#endif
 
 // enum so components can override power saving, 
 // as per TEP 112. 

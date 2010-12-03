@@ -38,7 +38,7 @@ configuration HplAtmRfa1Timer1C
 	{
 		interface AtmegaCounter<uint16_t> as Counter;
 		interface AtmegaCompare<uint16_t> as Compare[uint8_t id];
-//		interface AtmegaCapture<uint16_t> as Capture;
+		interface AtmegaCapture<uint16_t> as Capture;
 	}
 }
 
@@ -50,7 +50,7 @@ implementation
 	Compare[0] = HplAtmRfa1Timer1P.CompareA;
 //	Compare[1] = HplAtmRfa1Timer1P.CompareB;
 //	Compare[2] = HplAtmRfa1Timer1P.CompareC;
-//	Capture = HplAtmRfa1Timer1P;
+	Capture = HplAtmRfa1Timer1P;
 
 	components McuSleepC;
 	HplAtmRfa1Timer1P.McuPowerState -> McuSleepC;

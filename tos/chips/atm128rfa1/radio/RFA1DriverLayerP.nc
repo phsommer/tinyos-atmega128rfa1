@@ -73,6 +73,7 @@ module RFA1DriverLayerP
     interface PacketFlag as RSSIFlag;
     interface PacketFlag as TimeSyncFlag;
 
+    interface AtmegaCapture<uint32_t> as SfdCapture;
     interface PacketTimeStamp<TRadio, uint32_t>;
     interface LocalTime<TRadio>;
     
@@ -153,6 +154,7 @@ implementation
   tasklet_norace uint8_t rssiClear;
   tasklet_norace uint8_t rssiBusy;
 
+
   /*----------------- ALARM -----------------*/
 
   enum
@@ -189,8 +191,16 @@ implementation
 
     PHY_TX_PWR = (RFA1_DEF_RFPOWER & RFA1_TX_PWR_MASK) | (PA_BUF_LT_6US<<PA_BUF_LT0) | (PA_LT_2US<<PA_LT0);
 
-    // enable MAC layer timestamping with 32khz RTC
+
+#ifdef RFA1_TIMESTAMP_RTC
+    // enable MAC layer timestamping with RTC
     SCCR0 = 1<<SCEN | 1<<SCTSE | 1<<SCCKSEL;
+#endif
+
+#ifdef RFA1_TIMESTAMP_MCU
+    // enable Timer1 capture for SFD
+    SET_BIT(TRX_CTRL_1, IRQ_2_EXT_EN);
+#endif
 
     // enter sleep mode
     SET_BIT(TRXPR, SLPTR);
@@ -379,17 +389,10 @@ implementation
     
     atomic
     {
-      uint8_t lsb;
-      
       TRX_STATE = CMD_TX_START;
       // get timestamp
-      // reading the LSB captures current symbol counter value
-      lsb = SCCNTLL;
-      time = SCCNTHH;
-      time = time<<8 | SCCNTHL;
-      time = time<<8 | SCCNTLH;
-      time = time<<8 | lsb;
-      time = time + TX_SFD_DELAY;
+      time = call LocalTime.get();
+      time += TX_SFD_DELAY;
     }
 
 
@@ -632,11 +635,7 @@ implementation
           if( irq == IRQ_RX_START ) // just to be cautious
           {
             
-            uint32_t time =  SCTSRHH;
-            time = time<<8 | SCTSRHL;
-            time = time<<8 | SCTSRLH;
-            time = time<<8 | SCTSRLL;
-            
+            uint32_t time = call SfdCapture.get();
             call PacketTimeStamp.set(rxMsg, time - RX_SFD_DELAY);
           }
           else {
@@ -721,6 +720,17 @@ implementation
       signal RadioSend.ready();
 
   }
+
+
+  /*----------------- SFD CAPTURE -----------------*/
+ 
+  /**
+  * Signalled when the SFD captured event has occured
+  */
+  async event void SfdCapture.fired()
+  {
+    // use RX_START interrupt
+  } 
 
   /*----------------- INTERRUPTS -----------------*/
 

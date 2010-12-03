@@ -24,7 +24,6 @@
 #ifndef __RADIOCONFIG_H__
 #define __RADIOCONFIG_H__
 
-#include <MicaTimer.h>
 #include <RFA1DriverLayer.h>
 #include "HplAtmRfa1Timer.h"
 #include <util/crc16.h>
@@ -68,6 +67,12 @@ inline uint16_t RFA1_CRCBYTE_COMMAND(uint16_t crc, uint8_t data)
 {
 	return _crc_ccitt_update(crc, data);
 }
+
+/* By default the real time clock (RTC) is used for the SFD timestamp */
+#ifndef RFA1_TIMESTAMP_MCU
+#define RFA1_TIMESTAMP_RTC
+#endif
+
 
 /**
  * This is the timer type of the radio alarm interface

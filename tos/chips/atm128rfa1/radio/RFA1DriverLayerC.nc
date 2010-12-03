@@ -81,6 +81,16 @@ implementation
 	RFA1DriverLayerP.LocalTime -> LocalTime62khzC;
 	LocalTimeRadio = LocalTime62khzC;
 
+#ifdef RFA1_TIMESTAMP_RTC
+	components HplAtmRfa1TimerMacC;
+	RFA1DriverLayerP.SfdCapture -> HplAtmRfa1TimerMacC.SfdCapture;
+#endif
+
+#ifdef RFA1_TIMESTAMP_MCU
+        components HplAtmRfa1Timer1C;
+	RFA1DriverLayerP.SfdCapture -> HplAtmRfa1Timer1C.Capture;
+#endif
+
 	RFA1DriverLayerP.Tasklet -> TaskletC;
 
 #ifdef RADIO_DEBUG

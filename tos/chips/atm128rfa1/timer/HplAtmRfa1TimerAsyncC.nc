@@ -32,31 +32,25 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
-
-configuration HplAtmRfa1TimerMacC
+configuration HplAtmRfa1TimerAsyncC
 {
 	provides
 	{
-		interface AtmegaCounter<uint32_t> as Counter;
-		interface AtmegaCompare<uint32_t> as Compare[uint8_t id];
-		interface AtmegaCapture<uint32_t> as SfdCapture;
-		interface AtmegaCapture<uint32_t> as BeaconCapture;
+		interface AtmegaCounter<uint8_t> as Counter;
+		interface AtmegaCompare<uint8_t> as Compare[uint8_t id];
 	}
 }
 
 implementation
 {
-	components HplAtmRfa1TimerMacP;
+	components HplAtmRfa1TimerAsyncP;
 
-	Counter = HplAtmRfa1TimerMacP;
-	Compare[0] = HplAtmRfa1TimerMacP.CompareA;
-	Compare[1] = HplAtmRfa1TimerMacP.CompareB;
-	Compare[2] = HplAtmRfa1TimerMacP.CompareC;
-	SfdCapture = HplAtmRfa1TimerMacP.SfdCapture;
-	BeaconCapture = HplAtmRfa1TimerMacP.BeaconCapture;
+	Counter = HplAtmRfa1TimerAsyncP;
+	Compare[0] = HplAtmRfa1TimerAsyncP.CompareA;
+//	Compare[1] = HplAtmRfa1TimerAsyncP.CompareB;
+//	Compare[2] = HplAtmRfa1TimerAsyncP.CompareC;
 
 	components McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerState -> McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerOverride <- McuSleepC;
+	HplAtmRfa1TimerAsyncP.McuPowerState -> McuSleepC;
+	HplAtmRfa1TimerAsyncP.McuPowerOverride <- McuSleepC;
 }

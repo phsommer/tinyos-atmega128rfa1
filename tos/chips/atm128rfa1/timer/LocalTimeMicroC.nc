@@ -41,11 +41,9 @@ configuration LocalTimeMicroC
 
 implementation
 {
-	components CounterOne16C;
-	components new TransformCounterC(TMicro, uint32_t, TMicro, uint16_t, 0, uint32_t);
+	components CounterMicro32C;
 	components new CounterToLocalTimeC(TMicro);
 
+	CounterToLocalTimeC.Counter -> CounterMicro32C;
 	LocalTime = CounterToLocalTimeC;
-	CounterToLocalTimeC.Counter -> TransformCounterC;
-	TransformCounterC.CounterFrom -> CounterOne16C;
 }

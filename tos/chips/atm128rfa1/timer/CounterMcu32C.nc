@@ -43,18 +43,7 @@ implementation
 {
 	components new TransformCounterC(TMcu, uint32_t, TMcu, uint16_t, 0, uint16_t);
 	Counter = TransformCounterC;
-	TransformCounterC.CounterFrom -> AtmegaCounterP;
+	TransformCounterC.CounterFrom -> CounterMcu16C;
 
-	components new AtmegaCounterP(TMcu, uint16_t, MCU_TIMER_MODE);
-
-	components RealMainP;
-	RealMainP.PlatformInit -> AtmegaCounterP.Init;
-
-#if MCU_TIMER_NO == 1
-	components HplAtmRfa1Timer1C as HplAtmRfa1TimerC;
-#elif MCU_TIMER_NO == 3
-	components HplAtmRfa1Timer3C as HplAtmRfa1TimerC;
-#endif
-
-	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerC;
+	components CounterMcu16C;
 }

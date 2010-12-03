@@ -32,31 +32,25 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
-configuration HplAtmRfa1TimerMacC
+configuration CounterRtc16C
 {
-	provides
-	{
-		interface AtmegaCounter<uint32_t> as Counter;
-		interface AtmegaCompare<uint32_t> as Compare[uint8_t id];
-		interface AtmegaCapture<uint32_t> as SfdCapture;
-		interface AtmegaCapture<uint32_t> as BeaconCapture;
-	}
+	provides interface Counter<TRtc, uint16_t>;
+
+	// for the alarm
+	provides command uint8_t getCounterHigh();
 }
 
 implementation
 {
-	components HplAtmRfa1TimerMacP;
+	components new AtmegaRtcCounterP(TRtc, RTC_TIMER_MODE);
+	Counter = AtmegaRtcCounterP;
+	getCounterHigh = AtmegaRtcCounterP;
 
-	Counter = HplAtmRfa1TimerMacP;
-	Compare[0] = HplAtmRfa1TimerMacP.CompareA;
-	Compare[1] = HplAtmRfa1TimerMacP.CompareB;
-	Compare[2] = HplAtmRfa1TimerMacP.CompareC;
-	SfdCapture = HplAtmRfa1TimerMacP.SfdCapture;
-	BeaconCapture = HplAtmRfa1TimerMacP.BeaconCapture;
+	components PlatformC;
+	PlatformC.TimerInit -> AtmegaRtcCounterP.Init;
 
-	components McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerState -> McuSleepC;
-	HplAtmRfa1TimerMacP.McuPowerOverride <- McuSleepC;
+	components HplAtmRfa1Timer2C;
+	AtmegaRtcCounterP.AtmegaCounter -> HplAtmRfa1Timer2C;
 }

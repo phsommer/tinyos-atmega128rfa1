@@ -41,6 +41,9 @@ module HplAtmRfa1TimerMacP @safe()
 		interface AtmegaCounter<uint32_t> as Counter;
 		interface AtmegaCompare<uint32_t> as CompareA;
 		interface AtmegaCompare<uint32_t> as CompareB;
+		interface AtmegaCompare<uint32_t> as CompareC;
+		interface AtmegaCapture<uint32_t> as SfdCapture;
+		interface AtmegaCapture<uint32_t> as BeaconCapture;
 		interface McuPowerOverride;
 	}
 
@@ -304,11 +307,198 @@ implementation
 
 	async command void CompareB.force() { }
 
+// ----- COMPARE C: symbol counter output compare register (SCOCR)
+
+	async command uint32_t CompareC.get()
+	{
+		reg32_t time;
+
+		atomic
+		{
+			time.ll = SCOCR3LL;
+			time.lh = SCOCR3LH;
+			time.hl = SCOCR3HL;
+			time.hh	= SCOCR3HH;
+		}
+
+		return time.full;
+	}
+
+	async command void CompareC.set(uint32_t value)
+	{
+		reg32_t time;
+		
+		time.full = value;
+
+		atomic
+		{
+			SCOCR3HH = time.hh;
+			SCOCR3HL = time.hl;
+			SCOCR3LH = time.lh;
+			SCOCR3LL = time.ll;
+		}
+	}
+
+// ----- COMPARE C: symbol counter interrupt status register (SCIRQS), comare match flag (IRQSCP)
+
+	default async event void CompareC.fired() { }
+
+	AVR_ATOMIC_HANDLER(SCNT_CMP3_vect) { signal CompareC.fired(); }
+
+	async command bool CompareC.test() { return SCIRQS & (1 << IRQSCP3); }
+
+	async command void CompareC.reset() { SCIRQS = 1 << IRQSCP3; }
+
+// ----- COMPARE C: symbol counter interrupt mask register (SCIRQM), compare interrupt enable (IRQMCP)
+
+	async command void CompareC.start()
+	{
+		SET_BIT(SCIRQM, IRQMCP3);
+
+		call McuPowerState.update();
+	}
+
+	async command void CompareC.stop()
+	{
+		CLR_BIT(SCIRQM, IRQMCP3);
+
+		call McuPowerState.update();
+	}
+
+	async command bool CompareC.isOn() { return SCIRQM & (1 << IRQMCP3); }
+
+// ----- COMPARE C: symbol counter control register (SCCR), compare mode (SCCMP)
+
+	async command void CompareC.setMode(uint8_t mode)
+	{
+		atomic
+		{
+			SCCR0 = (SCCR0 & ~(1 << SCCMP3)) 
+				| (mode & 0x1) << SCCMP3;
+		}
+	}
+
+	async command uint8_t CompareC.getMode()
+	{
+		return (SCCR0 >> SCCMP3) & 0x1;
+	}
+
+// ----- COMPARE C: ignore force for the symbol counter
+
+	async command void CompareC.force() { }
+
+// ----- SFD CAPTURE: symbol counter time stamp register (SCTSR)
+
+	async command uint32_t SfdCapture.get()
+	{
+		reg32_t time;
+
+		atomic
+		{
+			time.ll = SCTSRLL;
+			time.lh = SCTSRLH;
+			time.hl = SCTSRHL;
+			time.hh	= SCTSRHH;
+		}
+
+		return time.full;
+	}
+
+	async command void SfdCapture.set(uint32_t value) 
+	{ 
+		// SCTSR is read only
+	}
+
+// ----- SFD CAPTURE: has no interrupt (use RX_START instead)
+
+	async command bool SfdCapture.test() { return FALSE; }
+	async command void SfdCapture.reset() { }
+	async command void SfdCapture.start() { }
+	async command void SfdCapture.stop() { }
+	async command bool SfdCapture.isOn() { return FALSE; }
+
+// ----- SFD CAPTURE: symbol counter control register (SCCR), timestamping enable (SCTES)
+
+	async command void SfdCapture.setMode(uint8_t mode)
+	{
+		atomic
+		{
+			SCCR0 = (SCCR0 & ~(1 << SCTSE))
+				| (mode & 0x1) << SCTSE;
+		}
+	}
+
+	async command uint8_t SfdCapture.getMode()
+	{
+		return (SCCR0 >> SCTSE) & 0x1;
+	}
+
+
+// ----- BEACON CAPTURE: symbol counter time stamp register (SCTSR)
+
+	async command uint32_t BeaconCapture.get()
+	{
+		reg32_t time;
+
+		atomic
+		{
+			time.ll = SCBTSRLL;
+			time.lh = SCBTSRLH;
+			time.hl = SCBTSRHL;
+			time.hh	= SCBTSRHH;
+		}
+
+		return time.full;
+	}
+
+	async command void BeaconCapture.set(uint32_t value) 
+	{ 
+		reg32_t time;
+		
+		time.full = value;
+
+		atomic
+		{
+			SCBTSRHH = time.hh;
+			SCBTSRHL = time.hl;
+			SCBTSRLH = time.lh;
+			SCBTSRLL = time.ll;
+		}
+	}
+
+// ----- BEACON CAPTURE: has no interrupt (use RX_START instead)
+
+	async command bool BeaconCapture.test() { return FALSE; }
+	async command void BeaconCapture.reset() { }
+	async command void BeaconCapture.start() { }
+	async command void BeaconCapture.stop() { }
+	async command bool BeaconCapture.isOn() { return FALSE; }
+
+// ----- BEACON CAPTURE: symbol counter control register (SCCR), timestamping enable (SCTES)
+
+	async command void BeaconCapture.setMode(uint8_t mode)
+	{
+		atomic
+		{
+			SCCR0 = (SCCR0 & ~(1 << SCTSE))
+				| (mode & 0x1) << SCTSE;
+		}
+	}
+
+	async command uint8_t BeaconCapture.getMode()
+	{
+		return (SCCR0 >> SCTSE) & 0x1;
+	}
+
 // ----- MCUPOWER
 
 	async command mcu_power_t McuPowerOverride.lowestState()
 	{
-		// TODO: go down to ATM128_POWER_DOWN and think about DEEP SLEEP
-		return ATM128_POWER_SAVE;
+		// TODO: check out why ATM128_POWER_DOWN does not work
+
+		if( SCCR0 & (1 << SCEN) )
+			return ATM128_POWER_SAVE;
+		else
+			return ATM128_POWER_DOWN;
 	}
 }
