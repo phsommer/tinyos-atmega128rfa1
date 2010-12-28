@@ -38,6 +38,10 @@ configuration CC2420XActiveMessageC
 		interface Receive as Snoop[am_id_t id];
 		interface SendNotifier[am_id_t id];
 
+		// for TOSThreads
+		interface Receive as ReceiveDefault[am_id_t id];
+		interface Receive as SnoopDefault[am_id_t id];
+
 		interface Packet;
 		interface AMPacket;
 
@@ -56,6 +60,13 @@ configuration CC2420XActiveMessageC
 		interface LocalTime<TRadio> as LocalTimeRadio;
 		interface PacketTimeStamp<TRadio, uint32_t> as PacketTimeStampRadio;
 		interface PacketTimeStamp<TMilli, uint32_t> as PacketTimeStampMilli;
+
+		interface PacketTimeStamp<T32khz, uint32_t> as PacketTimeStamp32khz;
+	}
+
+	uses
+	{
+		interface PacketTimeStamp<T32khz, uint32_t> as UnimplementedPacketTimeStamp32khz;
 	}
 }
 
@@ -69,6 +80,9 @@ implementation
 	Receive = RadioC.Receive;
 	Snoop = RadioC.Snoop;
 	SendNotifier = RadioC;
+
+	ReceiveDefault = RadioC.ReceiveDefault;
+	SnoopDefault = RadioC.SnoopDefault;
 
 	Packet = RadioC.PacketForActiveMessage;
 	AMPacket = RadioC;
@@ -88,4 +102,6 @@ implementation
 	LocalTimeRadio = RadioC;
 	PacketTimeStampMilli = RadioC;
 	PacketTimeStampRadio = RadioC;
+
+	PacketTimeStamp32khz = UnimplementedPacketTimeStamp32khz;
 }

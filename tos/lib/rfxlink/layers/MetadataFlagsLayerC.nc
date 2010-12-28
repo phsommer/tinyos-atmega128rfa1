@@ -35,7 +35,7 @@
 #include <MetadataFlagsLayer.h>
 #include <RadioAssert.h>
 
-module MetadataFlagsLayerC
+generic module MetadataFlagsLayerC()
 {
 	provides 
 	{
@@ -65,14 +65,14 @@ implementation
 
 	async command void PacketFlag.set[uint8_t bit](message_t* msg)
 	{
-		ASSERT( bit  < 8 );
+		RADIO_ASSERT( bit  < 8 );
 
 		getMeta(msg)->flags |= (1<<bit);
 	}
 
 	async command void PacketFlag.clear[uint8_t bit](message_t* msg)
 	{
-		ASSERT( bit  < 8 );
+		RADIO_ASSERT( bit  < 8 );
 
 		getMeta(msg)->flags &= ~(1<<bit);
 	}

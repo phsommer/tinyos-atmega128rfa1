@@ -24,12 +24,9 @@
 #ifndef __RADIOCONFIG_H__
 #define __RADIOCONFIG_H__
 
-
 #include <Timer.h>
-#include <message.h>
 #include <MicaTimer.h>
 #include <CC2420XDriverLayer.h>
-#include <util/crc16.h>
 
 /* This is the default value of the PA_POWER field of the TXCTL register. */
 #ifndef CC2420X_DEF_RFPOWER
@@ -64,12 +61,5 @@ typedef uint16_t tradio_size;
  * The base two logarithm of the number of radio alarm ticks per one millisecond
  */
 #define RADIO_ALARM_MILLI_EXP	(5 + MICA_DIVIDE_THREE_FOR_MICRO_LOG2)
-
-/**
- * Make PACKET_LINK automaticaly enabled for Ieee154MessageC
- */
-#if !defined(TFRAMES_ENABLED) && !defined(PACKET_LINK)
-#define PACKET_LINK
-#endif
 
 #endif//__RADIOCONFIG_H__

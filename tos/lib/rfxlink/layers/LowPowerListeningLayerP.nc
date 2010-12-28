@@ -94,7 +94,7 @@ implementation
 		SLEEP_SUBSTOP = 20,			// must have consecutive indices
 		SLEEP_SUBSTOP_DONE = 21,		// must have consecutive indices
 		SLEEP_TIMER = 22,			// must have consecutive indices
-		SLEEP = 23,				// must have consecutive indices
+		SLEEP_WAIT = 23,			// must have consecutive indices
 
 		SLEEP_SUBSTOP_DONE_TOSEND = 29,		// must have consecutive indices
 		SEND_SUBSTART = 30,			// must have consecutive indices
@@ -116,7 +116,7 @@ implementation
 		if( state == LISTEN_SUBSTART || state == SEND_SUBSTART )
 		{
 			error = call SubControl.start();
-			ASSERT( error == SUCCESS || error == EBUSY );
+			RADIO_ASSERT( error == SUCCESS || error == EBUSY );
 
 			if( error == SUCCESS )
 			{
@@ -129,7 +129,7 @@ implementation
 		else if( state == SLEEP_SUBSTOP || state == OFF_SUBSTOP )
 		{
 			error = call SubControl.stop();
-			ASSERT( error == SUCCESS || error == EBUSY );
+			RADIO_ASSERT( error == SUCCESS || error == EBUSY );
 
 			if( error == SUCCESS )
 			{
@@ -161,7 +161,7 @@ implementation
 		{
 			if( sleepInterval > 0 )
 			{
-				state = SLEEP;
+				state = SLEEP_WAIT;
 				call Timer.startOneShot(sleepInterval);
 			}
 			else
@@ -218,8 +218,8 @@ implementation
 
 	event void SubControl.startDone(error_t error)
 	{
-		ASSERT( error == SUCCESS || error == EBUSY );
-		ASSERT( state == LISTEN_SUBSTART_DONE || state == SEND_SUBSTART_DONE );
+		RADIO_ASSERT( error == SUCCESS || error == EBUSY );
+		RADIO_ASSERT( state == LISTEN_SUBSTART_DONE || state == SEND_SUBSTART_DONE );
 
 		if( error == SUCCESS )
 			++state;
@@ -231,7 +231,7 @@ implementation
 
 	command error_t SplitControl.stop()
 	{
-		if( state == SLEEP || state == LISTEN )
+		if( state == SLEEP_WAIT || state == LISTEN )
 		{
 			call Timer.stop();
 			post transition();
@@ -241,7 +241,7 @@ implementation
 			state = OFF_SUBSTOP;
 		else if( state == SLEEP_SUBSTOP_DONE )
 			state = OFF_SUBSTOP_DONE;
-		else if( state == LISTEN_SUBSTART || state == SLEEP_TIMER || state == SLEEP )
+		else if( state == LISTEN_SUBSTART || state == SLEEP_TIMER || state == SLEEP_WAIT )
 			state = OFF_STOP_END;
 		else if( state == OFF )
 			return EALREADY;
@@ -253,8 +253,8 @@ implementation
 
 	event void SubControl.stopDone(error_t error)
 	{
-		ASSERT( error == SUCCESS || error == EBUSY );
-		ASSERT( state == SLEEP_SUBSTOP_DONE || state == OFF_SUBSTOP_DONE || state == SLEEP_SUBSTOP_DONE_TOSEND );
+		RADIO_ASSERT( error == SUCCESS || error == EBUSY );
+		RADIO_ASSERT( state == SLEEP_SUBSTOP_DONE || state == OFF_SUBSTOP_DONE || state == SLEEP_SUBSTOP_DONE_TOSEND );
 
 		if( error == SUCCESS )
 			++state;
@@ -270,14 +270,14 @@ implementation
 	{
 		if( state == LISTEN )
 			state = SLEEP_SUBSTOP;
-		else if( state == SLEEP )
+		else if( state == SLEEP_WAIT )
 			state = LISTEN_SUBSTART;
 		else if( state == SEND_SUBSEND_DONE )
 			state = SEND_SUBSEND_DONE_LAST;
 		else if( state == SEND_SUBSEND)
 			state = SEND_DONE;
 		else
-			ASSERT(FALSE);
+			RADIO_ASSERT(FALSE);
 
 		post transition();
 	}
@@ -297,13 +297,13 @@ implementation
 
 	command error_t Send.send(message_t* msg)
 	{
-		if( state == LISTEN || state == SLEEP )
+		if( state == LISTEN || state == SLEEP_WAIT )
 		{
 			call Timer.stop();
 			post transition();
 		}
 
-		if( state == LISTEN_SUBSTART || state == SLEEP_TIMER || state == SLEEP )
+		if( state == LISTEN_SUBSTART || state == SLEEP_TIMER || state == SLEEP_WAIT )
 			state = SEND_SUBSTART;
 		else if( state == LISTEN_SUBSTART_DONE )
 			state = SEND_SUBSTART_DONE;
@@ -347,8 +347,8 @@ implementation
 
 	event void SubSend.sendDone(message_t* msg, error_t error)
 	{
-		ASSERT( state == SEND_SUBSEND_DONE || state == SEND_SUBSEND_DONE_LAST );
-		ASSERT( msg == txMsg );
+		RADIO_ASSERT( state == SEND_SUBSEND_DONE || state == SEND_SUBSEND_DONE_LAST );
+		RADIO_ASSERT( msg == txMsg );
 
 		txError = error;
 
@@ -384,7 +384,7 @@ implementation
 
 		sleepInterval = interval;
 
-		if( (state == LISTEN && sleepInterval == 0) || state == SLEEP )
+		if( (state == LISTEN && sleepInterval == 0) || state == SLEEP_WAIT )
 		{
 			call Timer.stop();
 			--state;
