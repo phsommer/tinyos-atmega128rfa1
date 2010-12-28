@@ -47,6 +47,10 @@ configuration RFA1DriverLayerC
 	{
 		interface RFA1DriverConfig as Config;
 		interface PacketTimeStamp<TRadio, uint32_t>;
+
+		interface PacketFlag as TransmitPowerFlag;
+		interface PacketFlag as RSSIFlag;
+		interface PacketFlag as TimeSyncFlag;
 	}
 }
 
@@ -63,16 +67,13 @@ implementation
 	Config = RFA1DriverLayerP;
 
 	PacketTransmitPower = RFA1DriverLayerP.PacketTransmitPower;
-	components new MetadataFlagC() as TransmitPowerFlagC;
-	RFA1DriverLayerP.TransmitPowerFlag -> TransmitPowerFlagC;
+	TransmitPowerFlag = RFA1DriverLayerP.TransmitPowerFlag;
 
 	PacketRSSI = RFA1DriverLayerP.PacketRSSI;
-	components new MetadataFlagC() as RSSIFlagC;
-	RFA1DriverLayerP.RSSIFlag -> RSSIFlagC;
+	RSSIFlag = RFA1DriverLayerP.RSSIFlag;
 
 	PacketTimeSyncOffset = RFA1DriverLayerP.PacketTimeSyncOffset;
-	components new MetadataFlagC() as TimeSyncFlagC;
-	RFA1DriverLayerP.TimeSyncFlag -> TimeSyncFlagC;
+	TimeSyncFlag = RFA1DriverLayerP.TimeSyncFlag;
 
 	PacketLinkQuality = RFA1DriverLayerP.PacketLinkQuality;
 	PacketTimeStamp = RFA1DriverLayerP.PacketTimeStamp;

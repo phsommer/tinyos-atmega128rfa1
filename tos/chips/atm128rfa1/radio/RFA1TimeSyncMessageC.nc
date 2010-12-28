@@ -48,7 +48,7 @@ configuration RFA1TimeSyncMessageC
 
 implementation
 {
-	components RFA1DriverLayerC, RFA1ActiveMessageC, TimeSyncMessageLayerC;
+	components RFA1DriverLayerC, RFA1ActiveMessageC, new TimeSyncMessageLayerC();
   
 	SplitControl	= RFA1ActiveMessageC;
 	AMPacket	= TimeSyncMessageLayerC;
