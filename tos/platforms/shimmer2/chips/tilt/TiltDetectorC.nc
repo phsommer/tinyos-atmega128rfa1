@@ -39,7 +39,7 @@
  * state.
  *
  * @author Gilman Tolle <gtolle@archrock.com>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * port to shimmer2 tilt switch
  * @author Steve Ayer
  * @date   February, 2010
@@ -54,10 +54,10 @@ implementation {
   SwitchToggleC.GpioInterrupt -> HplTiltDetectorC.GpioInterrupt;
   SwitchToggleC.GeneralIO -> HplTiltDetectorC.GeneralIO;
 
-  components UserButtonP;
-  Notify = UserButtonP;
+  components TiltDetectorP;
+  Notify = TiltDetectorP;
 
   components new TimerMilliC() as debounceTimer;
-  UserButtonP.NotifyLower -> SwitchToggleC.Notify;
-  UserButtonP.debounceTimer -> debounceTimer;
+  TiltDetectorP.NotifyLower -> SwitchToggleC.Notify;
+  TiltDetectorP.debounceTimer -> debounceTimer;
 }

@@ -179,7 +179,7 @@ implementation {
     return call SpiResource.request();
   }
 
-  async command uint8_t Resource.isOwner() {
+  async command bool Resource.isOwner() {
     return call SpiResource.isOwner();
   }
 
@@ -404,7 +404,7 @@ implementation {
   }
 
   event void RssiResource.granted() { 
-    uint16_t data;
+    uint16_t data = 0;
     call CSN.clr();
     call RSSI.read(&data);
     call CSN.set();
@@ -484,7 +484,7 @@ implementation {
   void writeMdmctrl0() {
     atomic {
       call MDMCTRL0.write( ( 1 << CC2420_MDMCTRL0_RESERVED_FRAME_MODE ) |
-          ( (hwAddressRecognition ? 1 : 1) << CC2420_MDMCTRL0_ADR_DECODE ) |
+          ( ((addressRecognition && hwAddressRecognition) ? 1 : 0) << CC2420_MDMCTRL0_ADR_DECODE ) |
           ( 2 << CC2420_MDMCTRL0_CCA_HYST ) |
           ( 3 << CC2420_MDMCTRL0_CCA_MOD ) |
           ( 1 << CC2420_MDMCTRL0_AUTOCRC ) |

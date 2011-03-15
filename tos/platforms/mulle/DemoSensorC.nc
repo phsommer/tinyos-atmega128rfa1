@@ -47,16 +47,11 @@ generic configuration DemoSensorC()
 }
 implementation
 {
-  components new AdcReadClientC(), DemoSensorP,
-             HplM16c62pGeneralIOC as IOs,
-             RealMainP;
+  components new AdcReadC(M16c60_ADC_CHL_AN0,
+                          M16c60_ADC_PRECISION_10BIT,
+                          M16c60_ADC_PRESCALE_4);
+  components HplM16c60GeneralIOC as IOs;
 
-  DemoSensorP.Pin -> IOs.PortP100;
-  DemoSensorP.AVcc -> IOs.PortP76;
-
-  Read = AdcReadClientC;
-
-  AdcReadClientC.M16c62pAdcConfig -> DemoSensorP;
-
-  RealMainP.PlatformInit -> DemoSensorP;
+  AdcReadC.Pin -> IOs.PortP100;
+  Read = AdcReadC;
 }

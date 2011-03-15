@@ -111,9 +111,7 @@ implementation
   PHY.Alarm1 -> PHYAlarm1;
   PHY.Alarm2 -> PHYAlarm2;
   PHY.LocalTime -> LocalTime62500hzC;
-  PHY.CaptureTime -> TKN154TimingP;
   PHY.ReliableWait -> TKN154TimingP;
-  PHY.ReferenceTime -> TKN154TimingP;
   PHY.TimeCalc -> MAC;
   TKN154TimingP.TimeCalc -> MAC;
   TKN154TimingP.Leds -> LedsC;
@@ -129,6 +127,10 @@ implementation
              new Alarm62500hz32VirtualizedC() as  MACAlarm7,
              new Alarm62500hz32VirtualizedC() as  MACAlarm8,
              new Alarm62500hz32VirtualizedC() as  MACAlarm9,
+             new Alarm62500hz32VirtualizedC() as  MACAlarm10,
+             new Alarm62500hz32VirtualizedC() as  MACAlarm11,
+             new Alarm62500hz32VirtualizedC() as  MACAlarm12,
+             new Alarm62500hz32VirtualizedC() as  MACAlarm13,
 
              new Timer62500C() as  MACTimer1,
              new Timer62500C() as  MACTimer2,
@@ -145,6 +147,10 @@ implementation
   MAC.Alarm7 ->  MACAlarm7;
   MAC.Alarm8 ->  MACAlarm8;
   MAC.Alarm9 ->  MACAlarm9;
+  MAC.Alarm10 ->  MACAlarm10;
+  MAC.Alarm11 ->  MACAlarm11;
+  MAC.Alarm12 ->  MACAlarm12;
+  MAC.Alarm13 ->  MACAlarm13;
 
   MAC.Timer1 -> MACTimer1;
   MAC.Timer2 -> MACTimer2;

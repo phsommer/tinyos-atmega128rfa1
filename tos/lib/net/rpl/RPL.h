@@ -76,7 +76,7 @@
 
 #define ETX_THRESHOLD 200
 #define MAX_ETX 200
-#define MAX_PARENT 3
+#define MAX_PARENT 20
 #define MAX_HOPCOUNT 30
 #define RPL_QUEUE_SIZE 5
 #define minHopRankIncrease 1
@@ -87,6 +87,8 @@ enum {
   RPL_DODAG_METRIC_CONTAINER_TYPE = 2,
   RPL_DST_PREFIX_TYPE = 3,
   RPL_DODAG_CONFIG_TYPE = 4,
+  RPL_TARGET_TYPE = 5,
+  RPL_TRANSIT_INFORMATION_TYPE = 6,
   RPL_MOP_No_Downward = 0,
   RPL_MOP_No_Storing = 1,
   RPL_MOP_Storing_No_Multicast = 2,
@@ -95,6 +97,7 @@ enum {
 
 enum {
   RPL_IFACE = ROUTE_IFACE_154,
+  RPL_HBH_RANK_TYPE = 243,
 };
 
 struct icmpv6_header_t {
@@ -108,8 +111,8 @@ struct dis_base_t {
   uint16_t reserved;
 };
 
-
 struct rpl_instance_id {
+  /* Global RPLInstance ID */
   uint8_t reserved  : 1;
   uint8_t id        : 7;
 };
@@ -141,17 +144,6 @@ struct dao_base_t {
   struct in6_addr dodagID;
   struct target_option_t target_option;
   struct transit_info_option_t transit_info_option;
-  /*
-  uint16_t DAOrank;
-  uint8_t routeTag;
-  uint8_t prefixLength;
-  uint8_t RRCount;
-  uint32_t DAOlifetime;
-  struct in6_addr destPrefix;
-  struct in6_addr RRStack;
-  //uint8_t* RRStack;
-  uint8_t* data;
-  */
 };
 
 struct dio_base_t {
@@ -170,22 +162,25 @@ struct dio_base_t {
 
 struct dio_body_t{ // type 2 ; contains metrics
   uint8_t type;
-  //uint8_t PAD1;
-  uint16_t container_len;
-  uint8_t *metric_data;
+  uint8_t container_len;
+  //uint8_t *metric_data;
 };
 
 struct dio_dodag_config_t{ // type 4 ; contains DODAG configuration
   uint8_t type;
-  //uint8_t PAD1;
-  uint16_t length;
+  uint8_t length;
+  uint8_t flags : 4;
+  uint8_t A     : 1;
+  uint8_t PCS   : 3;
   uint8_t DIOIntDoubl;
   uint8_t DIOIntMin;
   uint8_t DIORedun;
   uint8_t MaxRankInc;
   uint8_t MinHopRankInc;
-  //uint8_t PAD2;
-  uint8_t *data; // connect with any additional information
+  uint16_t ocp;
+  uint8_t reserved;
+  uint8_t default_lifetime;
+  uint16_t lifetime_unit;
 };
 
 struct dio_metric_header_t{ 
@@ -197,18 +192,15 @@ struct dio_metric_header_t{
   uint8_t O_flag      :  1;
   uint8_t C_flag      :  1;
   uint16_t object_len;
-  uint8_t *metric_body;
 };
 
 struct dio_etx_t{
   uint16_t etx;
-  //uint8_t PAD1;
-  uint8_t *data;
 };
 
 struct dio_latency_t{
   float latency;
-  uint8_t *data;
+  //uint8_t *data;
 };
 
 struct dio_prefix_t{
@@ -251,9 +243,9 @@ enum {
 };
 
 enum {
-  ICMPV6_CODE_DIS = 0x01,
-  ICMPV6_CODE_DIO = 0x02,
-  ICMPV6_CODE_DAO = 0x03,
+  ICMPV6_CODE_DIS = 0x00,
+  ICMPV6_CODE_DIO = 0x01,
+  ICMPV6_CODE_DAO = 0x02,
 };
 
 enum {
@@ -319,14 +311,15 @@ typedef struct {
 
 
 typedef struct {
+  struct ip6_ext ip6_ext_outer;
+  struct ip6_ext ip6_ext_inner;
   uint8_t o_bit  : 1;
-  //uint8_t s_flag  : 1;
   uint8_t r_bit  : 1;
   uint8_t f_bit  : 1;
   uint8_t reserved : 5;
   struct rpl_instance_id instance_id; // used to be instanceID 
   uint16_t senderRank;
-} __attribute__((packed)) ip_first_hdr_t ;
+} __attribute__((packed)) rpl_data_hdr_t ;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -356,6 +349,7 @@ struct padN_t{
   uint8_t *padN_data;
 };
 */
+parent_t parentSet[MAX_PARENT];
 
 
 #endif

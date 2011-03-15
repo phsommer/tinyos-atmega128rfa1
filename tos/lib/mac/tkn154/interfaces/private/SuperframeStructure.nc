@@ -33,10 +33,12 @@
  */
 
  /* A superframe is bounded by beacons and divided into 16 equally-sized slots,
-  * which are part of CAP, CFP (GTS) or the inactive period. This interface
-  * can be used to determine the various parameters of a superframe,
-  * for example the begin of an inactive period would be calculated as
-  * "sfStartTime + (numCapSlot + numGtsSlots) * sfSlotDuration"
+  * which are part of either CAP or CFP (GTS). This interface can be used to
+  * determine the various parameters of a superframe, for example the begin of
+  * the inactive period would be calculated as:
+  *
+  *    sfStartTime + (numCapSlot + numGtsSlots) * sfSlotDuration
+  *
   **/
 
 interface SuperframeStructure 
@@ -55,7 +57,7 @@ interface SuperframeStructure
    * 
    * @returns  superframe slot duration
    **/
-  async command uint16_t sfSlotDuration();
+  async command uint32_t sfSlotDuration();
 
   /**
    * Number of CAP slots.
@@ -65,9 +67,9 @@ interface SuperframeStructure
   async command uint8_t numCapSlots();
 
   /**
-   * Number of CAP slots (following the last CAP slot).
+   * Number of GTS slots.
    * 
-   * @returns  number of CAP slots
+   * @returns  number of GTS slots
    **/
   async command uint8_t numGtsSlots();
 
@@ -98,18 +100,17 @@ interface SuperframeStructure
   async command uint16_t guardTime();
 
   /**
-   * Platform-specific representation of "sfStartTime" marking
-   * the reception/tranmission time of a beacon.
-   * 
-   * @returns reception/tranmission time of the beacon
-   **/
-  async command const ieee154_timestamp_t* sfStartTimeRef();
-
-  /**
    * Tells whether the frame pending bit is set in the header
    * of the beacon frame.
    * 
    * @returns TRUE is frame pending bit in beacon header is set, FALSE otherwise
    **/
   async command bool isBroadcastPending();  
+
+  /**
+   * The beacon interval (in symbols) in which the superframe is embedded.
+   *
+   * @returns beacon interval
+   **/
+  async command uint32_t beaconInterval();
 }

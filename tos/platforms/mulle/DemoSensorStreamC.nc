@@ -8,8 +8,9 @@
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
- * Demo sensor for the mica2 platform.
+ * Demo sensor for the Mulle platform.
  *
+ * @author Henrik Makitaavola <henrik.makitaavola@gmail.com>
  * @author David Gay
  */
 
@@ -20,7 +21,7 @@ generic configuration DemoSensorStreamC()
 implementation {
   components new AdcReadStreamClientC(),
              DemoSensorP,
-             HplM16c62pGeneralIOC as IOs,
+             HplM16c60GeneralIOC as IOs,
              RealMainP;
 
   DemoSensorP.Pin -> IOs.PortP100;
@@ -28,7 +29,7 @@ implementation {
 
   ReadStream = AdcReadStreamClientC;
 
-  AdcReadStreamClientC.M16c62pAdcConfig -> DemoSensorP;
+  AdcReadStreamClientC.M16c60AdcConfig -> DemoSensorP;
 
   RealMainP.PlatformInit -> DemoSensorP;
 }

@@ -78,7 +78,7 @@ interface RPLRank {
   command void cancelRoot();
   
   // return the rank of the specified IP addr
-  command uint8_t getRank(struct in6_addr *node);
+  command uint16_t getRank(struct in6_addr *node);
 
   // return if IP is in parent set
   command bool isParent(struct in6_addr *node);
@@ -88,7 +88,7 @@ interface RPLRank {
   
   // inconsistency is seen for the link with IP
   // record this as part of entry in table as well
-  command void inconsistencyDetected(struct in6_addr *node);
+  command void inconsistencyDetected();
 
   /*new adding*/ 
   // ping rank component if there are parents

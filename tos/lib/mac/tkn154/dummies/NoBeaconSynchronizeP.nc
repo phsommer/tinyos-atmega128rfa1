@@ -85,7 +85,7 @@ implementation
 
   async event void TrackAlarm.fired() { }
 
-  event message_t* BeaconRx.received(message_t *frame, const ieee154_timestamp_t *timestamp) { return frame; }
+  event message_t* BeaconRx.received(message_t *frame) { return frame; }
 
   command error_t TrackSingleBeacon.start()
   {
@@ -100,14 +100,14 @@ implementation
   /* -----------------------  SF Structure, etc. ----------------------- */
 
   async command uint32_t IncomingSF.sfStartTime() { return 0; }
-  async command uint16_t IncomingSF.sfSlotDuration() { return 0; }
+  async command uint32_t IncomingSF.sfSlotDuration() { return 0; }
   async command uint8_t IncomingSF.numCapSlots() { return 0; }
   async command uint8_t IncomingSF.numGtsSlots() { return 0; }
   async command uint16_t IncomingSF.battLifeExtDuration() { return 0; }
   async command const uint8_t* IncomingSF.gtsFields() { return NULL; }
   async command uint16_t IncomingSF.guardTime() { return 0; }
-  async command const ieee154_timestamp_t* IncomingSF.sfStartTimeRef() { return NULL; }
   async command bool IncomingSF.isBroadcastPending() { return 0; }
+  async command uint32_t IncomingSF.beaconInterval() { return 0;}
   async command bool IsTrackingBeacons.getNow() { return 0; }
 
   event void DataRequest.pollDone(){}

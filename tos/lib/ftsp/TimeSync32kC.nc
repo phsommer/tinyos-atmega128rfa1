@@ -44,7 +44,7 @@ configuration TimeSync32kC
   provides interface StdControl;
   provides interface GlobalTime<T32khz>;
 
-  //interfaces for extra fcionality: need not to be wired
+  //interfaces for extra functionality: need not to be wired
   provides interface TimeSyncInfo;
   provides interface TimeSyncMode;
   provides interface TimeSyncNotify;
@@ -52,12 +52,6 @@ configuration TimeSync32kC
 
 implementation
 {
-#if defined(PLATFORM_MICAZ) || defined(PLATFORM_TELOSB)
-;
-#else
-#error "LPL timesync is not available for your platform"
-#endif
-
   components new TimeSyncP(T32khz) as TimeSyncP;
 
   GlobalTime      =   TimeSyncP;

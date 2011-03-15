@@ -1,5 +1,5 @@
 /**
- * Demo sensor for the mica2 platform.
+ * Demo sensor for the Mulle platform.
  *
  * @author Henrik Makitaavola <henrik.makitaavola@gmail.com>
  */
@@ -12,7 +12,7 @@ generic configuration DemoSensorNowC()
 implementation {
   components new AdcReadNowClientC(),
              DemoSensorP,
-             HplM16c62pGeneralIOC as IOs,
+             HplM16c60GeneralIOC as IOs,
              RealMainP;
 
   DemoSensorP.Pin -> IOs.PortP100;
@@ -21,7 +21,7 @@ implementation {
   ReadNow = AdcReadNowClientC;
   Resource = AdcReadNowClientC;
 
-  AdcReadNowClientC.M16c62pAdcConfig -> DemoSensorP;
+  AdcReadNowClientC.M16c60AdcConfig -> DemoSensorP;
 
   RealMainP.PlatformInit -> DemoSensorP;
 }

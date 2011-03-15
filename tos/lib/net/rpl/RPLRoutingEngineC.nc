@@ -49,11 +49,12 @@ implementation{
   components MainC, RandomC;
   components new TimerMilliC() as TrickleTimer;
   components new TimerMilliC() as InitDISTimer;
+  components new TimerMilliC() as VersionTimer;
   components IPAddressC;
   components LedsC, NoLedsC;
   components RPLRankC as RankC;
-
-  components new ICMPCodeDispatchC(ICMP_TYPE_ROUTER_SOL) as ICMP_RS;
+  components RPLDAORoutingEngineC;
+  components new ICMPCodeDispatchC(155) as ICMP_RS;
 
   RootControl = Routing;
   StdControl = Routing;
@@ -68,4 +69,6 @@ implementation{
   Routing.IPAddress -> IPAddressC;
   Routing.Leds -> LedsC;
   Routing.RankControl -> RankC;
+  Routing.RPLDAORoutingEngine -> RPLDAORoutingEngineC;
+  Routing.IncreaseVersionTimer -> VersionTimer;
 }

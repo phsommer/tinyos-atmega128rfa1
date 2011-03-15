@@ -94,6 +94,7 @@ int lowpan_extern_match_context(struct in6_addr *addr, uint8_t *ctx_id) {
 }
 
 
+#include <lib6lowpan/ieee154_header.c>
 #include <lib6lowpan/lib6lowpan.c>
 #include <lib6lowpan/lib6lowpan_4944.c>
 #include <lib6lowpan/lib6lowpan_frag.c>
@@ -387,8 +388,6 @@ void SENDINFO_DECR(struct send_info *si) {
       struct lowpan_reconstruct recon;
 
       buf = getLowpanPayload(&lowmsg);
-
-      call Leds.led0Toggle();
       if ((rv = lowpan_recon_start(&frame_address, &recon, buf, len)) < 0) {
         goto fail;
       }
