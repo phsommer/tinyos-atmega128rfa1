@@ -195,10 +195,12 @@ implementation {
     TOSH_MAKE_SER0_CTS_OUTPUT();
     TOSH_SEL_SER0_RTS_IOFUNC();
     TOSH_MAKE_SER0_RTS_OUTPUT();
+    TOSH_CLR_SER0_RTS_PIN();
 
     // this pin is now tied to the user button on the prog board
     TOSH_SEL_GIO0_IOFUNC();
-    TOSH_MAKE_GIO0_INPUT();
+    TOSH_MAKE_GIO0_OUTPUT();
+    TOSH_CLR_GIO0_PIN();
 
     TOSH_SEL_GIO1_IOFUNC();
     TOSH_MAKE_GIO1_OUTPUT();
