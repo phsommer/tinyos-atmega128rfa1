@@ -46,7 +46,6 @@ implementation
   Usart = HplAtm1281Usart0P.HplUsart;
   UsartInterrupts = HplAtm1281Usart0P.UsartInterrupts;
 
-  HplAtm1281Usart0P.Atm128Calibrate -> PlatformC;
   HplAtm1281Usart0P.McuPowerState -> McuSleepC;
 
   components HplAtm128GeneralIOC;

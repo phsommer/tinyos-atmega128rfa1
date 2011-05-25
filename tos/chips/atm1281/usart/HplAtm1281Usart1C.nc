@@ -37,7 +37,7 @@ configuration HplAtm1281Usart1C
 {
   provides {
     interface HplAtm1281Usart as Usart;
- 	interface HplAtm1281UsartInterrupts as UsartInterrupts;
+    interface HplAtm1281UsartInterrupts as UsartInterrupts;
   }
 }
 implementation
@@ -47,7 +47,6 @@ implementation
   Usart = HplAtm1281Usart1P.HplUsart;
   UsartInterrupts = HplAtm1281Usart1P.UsartInterrupts;
 
-  HplAtm1281Usart1P.Atm128Calibrate -> PlatformC;
   HplAtm1281Usart1P.McuPowerState -> McuSleepC;
 
   components HplAtm128GeneralIOC;

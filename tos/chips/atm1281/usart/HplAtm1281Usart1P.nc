@@ -74,7 +74,6 @@ module HplAtm1281Usart1P {
   uses interface GeneralIO as SCK;
   uses interface GeneralIO as MOSI;
   uses interface GeneralIO as MISO;
-  uses interface Atm128Calibrate;
   uses interface McuPowerState;
 }
 
