@@ -29,28 +29,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Miklos Maroti
+ * Author: Zsolt Szabo
  */
-
-#include "HplAtmRfa1Timer.h"
-
-generic configuration Alarm62khz32C()
-{
-	provides interface Alarm<T62khz, uint32_t>;
+module RFA1RadioOffP {
+  provides interface Init as RFA1RadioOff;
 }
-
-implementation
-{
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
-	Alarm = AtmegaCompareP;
-
-	components McuInitC;
-	McuInitC.TimerInit -> AtmegaCompareP;
-
-	components HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
-
-	// just to start the timer
-	components Counter62khz32C;
+implementation {
+  command error_t RFA1RadioOff.init() {
+    if(!uniqueCount("RFA1RadioOn")) {
+      TRXPR |= (1<<SLPTR); 
+    }
+  return SUCCESS;
+  }
 }

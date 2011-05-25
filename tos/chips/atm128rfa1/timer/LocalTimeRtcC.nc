@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, University of Szeged
+ * Copyright (c) 2011, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Author: Miklos Maroti
+ * Author: Philipp Sommer
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "TimerConfig.h"
 
-generic configuration Alarm62khz32C()
+configuration LocalTimeRtcC
 {
-	provides interface Alarm<T62khz, uint32_t>;
+	provides interface LocalTime<TRtc>;
 }
 
 implementation
 {
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
-	Alarm = AtmegaCompareP;
+	components CounterRtc32C;
+	components new CounterToLocalTimeC(TRtc);
 
-	components McuInitC;
-	McuInitC.TimerInit -> AtmegaCompareP;
-
-	components HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
-
-	// just to start the timer
-	components Counter62khz32C;
+	CounterToLocalTimeC.Counter -> CounterRtc32C;
+	LocalTime = CounterToLocalTimeC;
 }

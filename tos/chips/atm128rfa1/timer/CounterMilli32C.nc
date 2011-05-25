@@ -36,11 +36,7 @@
 
 configuration CounterMilli32C
 {
-	provides
-	{
-		interface Init @exactlyonce();
-		interface Counter<TMilli, uint32_t>;
-	}
+	provides interface Counter<TMilli, uint32_t>;
 }
 
 implementation
@@ -49,6 +45,5 @@ implementation
 	Counter = TransformCounterC;
 
 	components Counter62khz32C;
-	Init = Counter62khz32C;
 	TransformCounterC.CounterFrom -> Counter62khz32C;
 }

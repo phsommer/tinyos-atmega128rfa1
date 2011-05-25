@@ -32,25 +32,24 @@
  * Author: Miklos Maroti
  */
 
-configuration HplAtmRfa1TimerAsyncC
+#include "HplAtmRfa1Timer.h"
+
+configuration TimerMilliP
 {
 	provides
 	{
-		interface AtmegaCounter<uint8_t> as Counter;
-		interface AtmegaCompare<uint8_t> as Compare[uint8_t id];
+		interface Timer<TMilli> as TimerMilli[uint8_t id];
 	}
 }
 
 implementation
 {
-	components HplAtmRfa1TimerAsyncP;
+	components new AlarmMilli32C();
 
-	Counter = HplAtmRfa1TimerAsyncP;
-	Compare[0] = HplAtmRfa1TimerAsyncP.CompareA;
-//	Compare[1] = HplAtmRfa1TimerAsyncP.CompareB;
-//	Compare[2] = HplAtmRfa1TimerAsyncP.CompareC;
+	components new AlarmToTimerC(TMilli);
+	AlarmToTimerC.Alarm -> AlarmMilli32C;
 
-	components McuSleepC;
-	HplAtmRfa1TimerAsyncP.McuPowerState -> McuSleepC;
-	HplAtmRfa1TimerAsyncP.McuPowerOverride <- McuSleepC;
+	components new VirtualizeTimerC(TMilli, uniqueCount(UQ_TIMER_MILLI));
+	TimerMilli = VirtualizeTimerC;
+	VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
 }

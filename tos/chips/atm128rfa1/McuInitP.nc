@@ -32,33 +32,58 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
-
-configuration HilTimerMilliC
+module McuInitP @safe()
 {
-	provides
+	provides interface Init;
+
+	uses
 	{
-		interface Init;
-		interface Timer<TMilli> as TimerMilli[uint8_t id];
-		interface LocalTime<TMilli>;
+		interface Init as MeasureClock;
+		interface Init as TimerInit;
 	}
 }
 
 implementation
 {
-	components CounterMilli32C;
-	Init = CounterMilli32C;
+	error_t systemClockInit()
+	{
+		// set the clock prescaler
+		atomic
+		{
+			// enable changing the prescaler
+			CLKPR = 0x80;
 
-	components new CounterToLocalTimeC(TMilli);
-	LocalTime = CounterToLocalTimeC;
-	CounterToLocalTimeC.Counter -> CounterMilli32C;
+#if PLATFORM_MHZ == 16
+			CLKPR = 0x0F;	
+#elif PLATFORM_MHZ == 8
+			CLKPR = 0x00;
+#elif PLATFORM_MHZ == 4
+			CLKPR = 0x01;
+#elif PLATFORM_MHZ == 2
+			CLKPR = 0x02;
+#elif PLATFORM_MHZ == 1
+			CLKPR = 0x03;
+#else
+	#error "Unsupported MHZ"
+#endif
+		}
 
-	components new AlarmMilli32C();
+		return SUCCESS;
+	}
 
-	components new AlarmToTimerC(TMilli);
-	AlarmToTimerC.Alarm -> AlarmMilli32C;
+	command error_t Init.init()
+	{
+		error_t ok;
 
-	components new VirtualizeTimerC(TMilli, uniqueCount(UQ_TIMER_MILLI));
-	TimerMilli = VirtualizeTimerC;
-	VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
+		ok = systemClockInit();
+		ok = ecombine(ok, call MeasureClock.init());
+		ok = ecombine(ok, call TimerInit.init());
+
+		return ok;
+	}
+
+	default command error_t TimerInit.init()
+	{
+		return SUCCESS;
+	}
 }

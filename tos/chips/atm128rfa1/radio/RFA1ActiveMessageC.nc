@@ -2,23 +2,35 @@
  * Copyright (c) 2007, Vanderbilt University
  * All rights reserved.
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose, without fee, and without written agreement is
- * hereby granted, provided that the above copyright notice, the following
- * two paragraphs and the author appear in all copies of this software.
- * 
- * IN NO EVENT SHALL THE VANDERBILT UNIVERSITY BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
- * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE VANDERBILT
- * UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * THE VANDERBILT UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND THE VANDERBILT UNIVERSITY HAS NO OBLIGATION TO
- * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ * - Neither the name of the copyright holder nor the names of
+ *   its contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Author: Miklos Maroti
+ * Author: Andras Biro
  */
 
 #include <RadioConfig.h>
@@ -37,6 +49,10 @@ configuration RFA1ActiveMessageC
 		interface Receive[am_id_t id];
 		interface Receive as Snoop[am_id_t id];
 		interface SendNotifier[am_id_t id];
+
+		// for TOSThreads
+		interface Receive as ReceiveDefault[am_id_t id];
+		interface Receive as SnoopDefault[am_id_t id];
 
 		interface Packet;
 		interface AMPacket;
@@ -61,31 +77,34 @@ configuration RFA1ActiveMessageC
 
 implementation
 {
-	components RFA1RadioC;
+	components RFA1RadioC as RadioC;
 
-	SplitControl = RFA1RadioC;
+	SplitControl = RadioC;
 
-	AMSend = RFA1RadioC;
-	Receive = RFA1RadioC.Receive;
-	Snoop = RFA1RadioC.Snoop;
-	SendNotifier = RFA1RadioC;
+	AMSend = RadioC;
+	Receive = RadioC.Receive;
+	Snoop = RadioC.Snoop;
+	SendNotifier = RadioC;
 
-	Packet = RFA1RadioC.PacketForActiveMessage;
-	AMPacket = RFA1RadioC;
+	ReceiveDefault = RadioC.ReceiveDefault;
+	SnoopDefault = RadioC.SnoopDefault;
 
-	PacketAcknowledgements = RFA1RadioC;
-	LowPowerListening = RFA1RadioC;
+	Packet = RadioC.PacketForActiveMessage;
+	AMPacket = RadioC;
+
+	PacketAcknowledgements = RadioC;
+	LowPowerListening = RadioC;
 #ifdef PACKET_LINK
-	PacketLink = RFA1RadioC;
+	PacketLink = RadioC;
 #endif
 
-	RadioChannel = RFA1RadioC;
+	RadioChannel = RadioC;
 
-	PacketLinkQuality = RFA1RadioC.PacketLinkQuality;
-	PacketTransmitPower = RFA1RadioC.PacketTransmitPower;
-	PacketRSSI = RFA1RadioC.PacketRSSI;
+	PacketLinkQuality = RadioC.PacketLinkQuality;
+	PacketTransmitPower = RadioC.PacketTransmitPower;
+	PacketRSSI = RadioC.PacketRSSI;
 
-	LocalTimeRadio = RFA1RadioC;
-	PacketTimeStampMilli = RFA1RadioC;
-	PacketTimeStampRadio = RFA1RadioC;
+	LocalTimeRadio = RadioC;
+	PacketTimeStampMilli = RadioC;
+	PacketTimeStampRadio = RadioC;
 }

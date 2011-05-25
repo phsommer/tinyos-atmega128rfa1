@@ -34,14 +34,13 @@
 
 #include "HplAtmRfa1Timer.h"
 
-module HplAtmRfa1TimerAsyncP @safe()
+module HplAtmRfa1Timer2AsyncP @safe()
 {
 	provides
 	{
-		interface AtmegaCounter<uint8_t> as Timer;
+		interface AtmegaCounter<uint8_t> as Counter;
 		interface AtmegaCompare<uint8_t> as CompareA;
 //		interface AtmegaCompare<uint8_t> as CompareB;
-//		interface AtmegaCompare<uint8_t> as CompareC;
 		interface McuPowerOverride;
 	}
 
@@ -62,15 +61,15 @@ implementation
 	before entering power down mode we wait for the completion of these register 
 	updates.
 */
-// ----- TIMER: timer Timer register (TCNT)
+// ----- TIMER: timer counter register (TCNT)
 
-	async command uint8_t Timer.get()
+	async command uint8_t Counter.get()
 	{
 		// TODO: make sure we wait at least one 1/32768 clock tick after wakeup
 		return TCNT2;
 	}
 
-	async command void Timer.set(uint8_t value)
+	async command void Counter.set(uint8_t value)
 	{
 		atomic
 		{
@@ -85,7 +84,7 @@ implementation
 
 // ----- TIMER: timer interrupt flag register (TIFR), timer overflow flag (TOV)
 
-	default async event void Timer.overflow() { }
+	default async event void Counter.overflow() { }
 
 	AVR_ATOMIC_HANDLER(TIMER2_OVF_vect)
 	{
@@ -93,32 +92,32 @@ implementation
 		TCCR2A = TCCR2A;
 		call McuPowerState.update();
 
-		signal Timer.overflow();
+		signal Counter.overflow();
 	}
 
-	async command bool Timer.test() { return TIFR2 & (1 << TOV2); }
+	async command bool Counter.test() { return TIFR2 & (1 << TOV2); }
 
-	async command void Timer.reset() { TIFR2 = 1 << TOV2; }
+	async command void Counter.reset() { TIFR2 = 1 << TOV2; }
 
 // ----- TIMER: timer interrupt mask register (TIMSK), timer overflow interrupt enable (TOIE)
 
-	async command void Timer.start()
+	async command void Counter.start()
 	{
 		SET_BIT(TIMSK2, TOIE2);
 		call McuPowerState.update();
 	}
 
-	async command void Timer.stop()
+	async command void Counter.stop()
 	{
 		CLR_BIT(TIMSK2, TOIE2);
 		call McuPowerState.update();
 	}
 
-	async command bool Timer.isOn() { return TIMSK2 & (1 << TOIE2); }
+	async command bool Counter.isOn() { return TIMSK2 & (1 << TOIE2); }
 
 // ----- TIMER: timer control register (TCCR), clock select (CS) and waveform generation mode (WGM) bits
 
-	async command void Timer.setMode(uint8_t mode)
+	async command void Counter.setMode(uint8_t mode)
 	{
 		atomic
 		{
@@ -139,7 +138,7 @@ implementation
 		call McuPowerState.update();
 	}
 
-	async command uint8_t Timer.getMode()
+	async command uint8_t Counter.getMode()
 	{
 		uint8_t a, b, c;
 

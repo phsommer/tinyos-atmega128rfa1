@@ -2,23 +2,36 @@
  * Copyright (c) 2007, Vanderbilt University
  * All rights reserved.
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose, without fee, and without written agreement is
- * hereby granted, provided that the above copyright notice, the following
- * two paragraphs and the author appear in all copies of this software.
- * 
- * IN NO EVENT SHALL THE VANDERBILT UNIVERSITY BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
- * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE VANDERBILT
- * UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * THE VANDERBILT UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND THE VANDERBILT UNIVERSITY HAS NO OBLIGATION TO
- * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ * - Neither the name of the copyright holder nor the names of
+ *   its contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Author: Miklos Maroti
+ * Author: Andras Biro
+ * Author: Philipp Sommer
  */
 
 #include <RFA1Radio.h>
@@ -129,7 +142,7 @@ implementation
 	tasklet_async command void SoftwareAckConfig.reportChannelError()
 	{
 #ifdef TRAFFIC_MONITOR
-		signal TrafficMonitorConfig.channelError();
+//		signal TrafficMonitorConfig.channelError();
 #endif
 	}
 
@@ -153,7 +166,7 @@ implementation
 	tasklet_async command void UniqueConfig.reportChannelError()
 	{
 #ifdef TRAFFIC_MONITOR
-		signal TrafficMonitorConfig.channelError();
+//		signal TrafficMonitorConfig.channelError();
 #endif
 	}
 
@@ -206,33 +219,11 @@ implementation
 
 /*----------------- TrafficMonitorConfig -----------------*/
 
-	enum
+	async command uint16_t TrafficMonitorConfig.getBytes(message_t* msg)
 	{
-		TRAFFIC_UPDATE_PERIOD = 100,	// in milliseconds
-		TRAFFIC_MAX_BYTES = (uint16_t)(TRAFFIC_UPDATE_PERIOD * 1000UL / 32),	// 3125
-	};
+		// pure airtime: preable (4 bytes), SFD (1 byte), length (1 byte), payload + CRC (len bytes)
 
-	async command uint16_t TrafficMonitorConfig.getUpdatePeriod()
-	{
-		return TRAFFIC_UPDATE_PERIOD;
-	}
-
-	async command uint16_t TrafficMonitorConfig.getChannelTime(message_t* msg)
-	{
-		/* We count in bytes, one byte is 32 microsecond. We are conservative here.
-		 *
-		 * pure airtime: preable (4 bytes), SFD (1 byte), length (1 byte), payload + CRC (len bytes)
-		 * frame separation: 5-10 bytes
-		 * ack required: 8-16 byte separation, 11 bytes airtime, 5-10 bytes separation
-		 */
-
-		uint8_t len = call RFA1Packet.payloadLength(msg);
-		return call Ieee154PacketLayer.getAckRequired(msg) ? len + 6 + 16 + 11 + 10 : len + 6 + 10;
-	}
-
-	async command am_addr_t TrafficMonitorConfig.getSender(message_t* msg)
-	{
-		return call Ieee154PacketLayer.getSrcAddr(msg);
+		return call RFA1Packet.payloadLength(msg) + 6;
 	}
 
 /*----------------- RandomCollisionConfig -----------------*/
@@ -248,19 +239,31 @@ implementation
 
 #ifndef LOW_POWER_LISTENING
 
+#ifndef RFA1_BACKOFF_MIN
+#define RFA1_BACKOFF_MIN 320
+#endif
+
 	async command uint16_t RandomCollisionConfig.getMinimumBackoff()
 	{
-		return (uint16_t)(320 * RADIO_ALARM_MICROSEC);
+		return (uint16_t)(RFA1_BACKOFF_MIN * RADIO_ALARM_MICROSEC);
 	}
+
+#ifndef RFA1_BACKOFF_INIT
+#define RFA1_BACKOFF_INIT 4960		// instead of 9920
+#endif
 
 	async command uint16_t RandomCollisionConfig.getInitialBackoff(message_t* msg)
 	{
-		return (uint16_t)(9920 * RADIO_ALARM_MICROSEC);
+		return (uint16_t)(RFA1_BACKOFF_INIT * RADIO_ALARM_MICROSEC);
 	}
+
+#ifndef RFA1_BACKOFF_CONG
+#define RFA1_BACKOFF_CONG 2240
+#endif
 
 	async command uint16_t RandomCollisionConfig.getCongestionBackoff(message_t* msg)
 	{
-		return (uint16_t)(2240 * RADIO_ALARM_MICROSEC);
+		return (uint16_t)(RFA1_BACKOFF_CONG * RADIO_ALARM_MICROSEC);
 	}
 
 #endif

@@ -32,25 +32,24 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
-
-generic configuration Alarm62khz32C()
+configuration HplAtmRfa1Timer2AsyncC
 {
-	provides interface Alarm<T62khz, uint32_t>;
+	provides
+	{
+		interface AtmegaCounter<uint8_t> as Counter;
+		interface AtmegaCompare<uint8_t> as Compare[uint8_t id];
+	}
 }
 
 implementation
 {
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
-	Alarm = AtmegaCompareP;
+	components HplAtmRfa1Timer2AsyncP;
 
-	components McuInitC;
-	McuInitC.TimerInit -> AtmegaCompareP;
+	Counter = HplAtmRfa1Timer2AsyncP;
+	Compare[0] = HplAtmRfa1Timer2AsyncP.CompareA;
+//	Compare[1] = HplAtmRfa1Timer2AsyncP.CompareB;
 
-	components HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
-
-	// just to start the timer
-	components Counter62khz32C;
+	components McuSleepC;
+	HplAtmRfa1Timer2AsyncP.McuPowerState -> McuSleepC;
+	HplAtmRfa1Timer2AsyncP.McuPowerOverride <- McuSleepC;
 }

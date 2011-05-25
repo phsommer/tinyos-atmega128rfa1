@@ -32,25 +32,22 @@
  * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
-
-generic configuration Alarm62khz32C()
+configuration McuInitC @safe()
 {
-	provides interface Alarm<T62khz, uint32_t>;
+	provides interface Init;
+
+	uses
+	{
+		interface Init as TimerInit;
+	}
 }
 
 implementation
 {
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
-	Alarm = AtmegaCompareP;
+	components McuInitP, MeasureClockC;
 
-	components McuInitC;
-	McuInitC.TimerInit -> AtmegaCompareP;
+	Init = McuInitP.Init;
+	TimerInit = McuInitP.TimerInit;
 
-	components HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
-
-	// just to start the timer
-	components Counter62khz32C;
+	McuInitP.MeasureClock -> MeasureClockC;
 }

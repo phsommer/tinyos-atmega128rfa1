@@ -40,7 +40,6 @@ module PlatformP @safe()
 
 	uses
 	{
-		interface Init as MeasureClock;
 		interface Init as TimerInit;
 		interface Init as LedsInit;
 	}
@@ -92,12 +91,9 @@ implementation
 #endif
     }
 
-    /* First thing is to measure the clock frequency */
-    ok = call MeasureClock.init();
 
     // initialize all timer registers, and start the MCU timer
-    if( ok == SUCCESS )
-	    ok = call TimerInit.init();
+    ok = call TimerInit.init();
 
     // initialize the LED ports
     if( ok == SUCCESS )

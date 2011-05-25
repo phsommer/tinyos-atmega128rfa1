@@ -40,8 +40,10 @@ typedef struct T62khz { } T62khz;
 
 #define UQ_T62KHZ_ALARM "T62KHZ_ALARM"
 
-// ----- AtmegaTimer.setMode values for 8-bit timers
 
+// ------- 8-bit timers -------
+
+// constants for AtmegaTimer.setMode
 enum
 {
 	// timer control register (TCCR), clock select bits (CS)
@@ -68,8 +70,7 @@ enum
 	ATMRFA1_ASYNC_EXT = 3 << 6,
 };
 
-// ----- AtmegaCompare.setMode values for 8-bit timers
-
+// constants for AtmegaCompare.setMode
 enum
 {
 	// timer control register (TCCR), compare output mode (COM)
@@ -79,8 +80,10 @@ enum
 	ATMRFA1_COM8_SET,
 };
 
-// ----- AtmegaTimer.setMode values for 16-bit timers
 
+// ------- 16-bit timers -------
+
+// constants for AtmegaTimer.setMode
 enum
 {
 	// timer control register (TCCR), clock select bits (CS)
@@ -112,8 +115,7 @@ enum
 	ATMRFA1_WGM16_PWM_FAST_COMPARE = 15 << 3,
 };
 
-// ----- AtmegaCompare.setMode values for 16-bit timers
-
+// constants for AtmegaCompare.setMode
 enum
 {
 	// timer control register (TCCR), compare output mode (COM)
@@ -123,16 +125,17 @@ enum
 	ATMRFA1_COM16_SET
 };
 
-// ----- AtmegaCapture.setMode values for 16-bit timers
-
+// constants for AtmegaCapture.setMode
 enum
 {
 	ATMRFA1_CAP16_RISING_EDGE = 0x01,
 	ATMRFA1_CAP16_NOISE_CANCEL = 0x02,
 };
 
-// ----- AtmegaCounter.setMode for the mac symbol counter
 
+// ------- MAC symbol counter -------
+
+// constants for AtmegaTimer.setMode
 enum
 {
 	ATMRFA1_CLKSC_DISABLE = 0,
@@ -140,17 +143,14 @@ enum
 	ATMRFA1_CLKSC_RTC = (1 << SCEN) | (1 << SCCKSEL),	// 32 KHz RTC
 };
 
-
-// ----- AtmegaCompare.setMode for the mac symbol counter
-
+// constants for AtmegaCompare.setMode
 enum
 {
 	ATMRFA1_COMSC_ABSOLUTE = 0,
 	ATMRFA1_COMSC_RELATIVE = 1,
 };
 
-// ----- AtmegaCompare.setMode for the mac symbol counter
-
+// constants for AtmegaCapture.setMode
 enum
 {
 	ATMRFA1_CAPSC_OFF = 0,

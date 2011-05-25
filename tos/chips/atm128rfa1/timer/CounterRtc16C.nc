@@ -48,9 +48,9 @@ implementation
 	Counter = AtmegaRtcCounterP;
 	getCounterHigh = AtmegaRtcCounterP;
 
-	components PlatformC;
-	PlatformC.TimerInit -> AtmegaRtcCounterP.Init;
+	components McuInitC;
+	McuInitC.TimerInit -> AtmegaRtcCounterP.Init;
 
-	components HplAtmRfa1Timer2C;
-	AtmegaRtcCounterP.AtmegaCounter -> HplAtmRfa1Timer2C;
+	components HplAtmRfa1Timer2AsyncC;
+	AtmegaRtcCounterP.AtmegaCounter -> HplAtmRfa1Timer2AsyncC;
 }

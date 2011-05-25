@@ -1,6 +1,7 @@
+/// $Id: HplAtm128AdcC.nc,v 1.7 2010-06-29 22:07:43 scipio Exp $
+
 /*
- * Copyright (c) 2010, University of Szeged
- * All rights reserved.
+ * Copyright (c) 2004-2005 Crossbow Technology, Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -12,7 +13,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- * - Neither the name of the copyright holder nor the names of
+ * - Neither the name of Crossbow Technology nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -28,29 +29,25 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+#include "Atm128Adc.h"
 
-generic configuration Alarm62khz32C()
-{
-	provides interface Alarm<T62khz, uint32_t>;
+/**
+ * HPL for the Atmega128 A/D conversion susbsystem.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author Hu Siquan <husq@xbow.com>
+ * @author David Gay
+ */
+
+configuration HplAtm128AdcC {
+  provides interface HplAtm128Adc;
 }
+implementation {
+  components HplAtm128AdcP, McuSleepC;
 
-implementation
-{
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
-	Alarm = AtmegaCompareP;
-
-	components McuInitC;
-	McuInitC.TimerInit -> AtmegaCompareP;
-
-	components HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
-
-	// just to start the timer
-	components Counter62khz32C;
+  HplAtm128Adc = HplAtm128AdcP;
+  HplAtm128AdcP.McuPowerState -> McuSleepC;
+	HplAtm128AdcP.McuPowerOverride <- McuSleepC;
 }

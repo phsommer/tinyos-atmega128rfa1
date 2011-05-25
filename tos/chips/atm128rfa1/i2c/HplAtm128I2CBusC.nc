@@ -1,6 +1,8 @@
+/// $Id: HplAtm128I2CBusC.nc,v 1.5 2010-06-29 22:07:43 scipio Exp $
+
 /*
- * Copyright (c) 2010, University of Szeged
- * All rights reserved.
+ *  Copyright (c) 2004-2006 Crossbow Technology, Inc.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,29 +30,31 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Author: Miklos Maroti
  */
 
-#include "HplAtmRfa1Timer.h"
+/**
+ * This driver implements direct I2C register access and a blocking master
+ * controller for the ATmega128 via a Hardware Platform Layer (HPL) to its  
+ * two-wire-interface (TWI) hardware subsystem.
+ *
+ * @author Martin Turon <mturon@xbow.com>
+ * @author Philip Levis
+ *
+ * @version    $Id: HplAtm128I2CBusC.nc,v 1.5 2010-06-29 22:07:43 scipio Exp $
+ */
 
-generic configuration Alarm62khz32C()
-{
-	provides interface Alarm<T62khz, uint32_t>;
+configuration HplAtm128I2CBusC {
+  provides interface HplAtm128I2CBus as I2C;
 }
+implementation {
 
-implementation
-{
-	components new AtmegaCompareP(T62khz, uint32_t, 0, 2);
-	Alarm = AtmegaCompareP;
+  components HplAtm128GeneralIOC as IO, HplAtm128I2CBusP as Bus;
+	components McuSleepC;
+  
+  I2C         = Bus.I2C;
+  Bus.I2CClk  -> IO.PortD0;
+  Bus.I2CData -> IO.PortD1;
 
-	components McuInitC;
-	McuInitC.TimerInit -> AtmegaCompareP;
-
-	components HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCounter -> HplAtmRfa1TimerMacC;
-	AtmegaCompareP.AtmegaCompare -> HplAtmRfa1TimerMacC.Compare[unique(UQ_T62KHZ_ALARM)];
-
-	// just to start the timer
-	components Counter62khz32C;
+	Bus.McuPowerState -> McuSleepC;
+	Bus.McuPowerOverride <- McuSleepC;
 }

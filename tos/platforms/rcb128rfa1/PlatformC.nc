@@ -37,7 +37,6 @@ configuration PlatformC
 	provides
 	{
 		interface Init;
-		interface Atm128Calibrate;
 	}
 
 	uses
@@ -49,12 +48,10 @@ configuration PlatformC
 }
 implementation
 {
-	components PlatformP, MeasureClockC;
+	components PlatformP;
   
 	Init = PlatformP;
-	Atm128Calibrate = MeasureClockC;
 
-	PlatformP.MeasureClock -> MeasureClockC;
 	TimerInit = PlatformP.TimerInit;
 	LedsInit = PlatformP.LedsInit;
 

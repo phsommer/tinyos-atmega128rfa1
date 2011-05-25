@@ -5,9 +5,10 @@
 #include <atm128hardware.h>
 #include <Atm128Adc.h>
 
-#ifndef PLATFORM_MHZ
-#define PLATFORM_MHZ 8
-#endif
+
+#define MHZ 16
+#define PLATFORM_MHZ 16
+
 
 // enum so components can override power saving, 
 // as per TEP 112. 
@@ -19,4 +20,5 @@ enum {
 #ifndef PLATFORM_BAUDRATE 
 #define PLATFORM_BAUDRATE 57600L
 #endif
+
 #endif //HARDWARE_H

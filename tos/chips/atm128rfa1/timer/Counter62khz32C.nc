@@ -36,18 +36,16 @@
 
 configuration Counter62khz32C
 {
-	provides
-	{
-		interface Init @exactlyonce();
-		interface Counter<T62khz, uint32_t>;
-	}
+	provides interface Counter<T62khz, uint32_t>;
 }
 
 implementation
 {
 	components new AtmegaCounterP(T62khz, uint32_t, ATMRFA1_CLKSC_RTC);
-	Init = AtmegaCounterP;
 	Counter = AtmegaCounterP;
+
+	components McuInitC;
+	McuInitC.TimerInit -> AtmegaCounterP.Init;
 
 	components HplAtmRfa1TimerMacC;
 	AtmegaCounterP.AtmegaCounter -> HplAtmRfa1TimerMacC;
