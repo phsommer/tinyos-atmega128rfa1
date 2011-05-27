@@ -41,18 +41,19 @@ configuration PlatformC
 
 	uses
 	{
-		interface Init as TimerInit;
 		interface Init as LedsInit;
 	}
 
 }
 implementation
 {
-	components PlatformP;
+	components PlatformP, McuInitC, RFA1RadioOffP;
   
 	Init = PlatformP;
 
-	TimerInit = PlatformP.TimerInit;
 	LedsInit = PlatformP.LedsInit;
+    PlatformP.McuInit -> McuInitC;
+
+   PlatformP.RadioInit -> RFA1RadioOffP.RFA1RadioOff;
 
 }
